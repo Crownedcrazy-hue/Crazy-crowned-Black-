@@ -4,29 +4,126 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>Windows 12 — Concept</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%;background:#e5e7eb;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-font-smoothing:antialiased}
+  html,body{height:100%;background:#e5e7eb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
   #root{min-height:100%;display:flex;justify-content:center;align-items:flex-start;background:#e5e7eb;padding:20px 0}
   button{font-family:inherit;cursor:pointer;border:none;background:none;padding:0}
   ::-webkit-scrollbar{width:0}
   input:focus{outline:none}
+  #phone{width:390px;min-height:844px;background:#0b1d51;border-radius:48px;overflow:hidden;
+    box-shadow:0 24px 80px rgba(0,0,0,0.45),inset 0 0 0 1px rgba(255,255,255,0.15);
+    display:flex;flex-direction:column;position:relative}
   @media(max-width:440px){#root{padding:0}#phone{border-radius:0!important;min-height:100vh!important;width:100%!important}}
+
+  .wallpaper{flex:1;display:flex;flex-direction:column;overflow:hidden;
+    background:radial-gradient(120% 80% at 20% 0%,#4f46e5 0%,rgba(79,70,229,0) 55%),radial-gradient(120% 90% at 90% 20%,#7c3aed 0%,rgba(124,58,237,0) 50%),linear-gradient(160deg,#0b1d51 0%,#1e3a8a 40%,#3730a3 75%,#1e1b4b 100%);
+    position:relative}
+
+  .statusbar{display:flex;align-items:center;justify-content:space-between;padding:14px 28px 6px;position:relative;z-index:30}
+  .statusbar .time{font-size:15px;font-weight:600;color:#fff;letter-spacing:-0.3px}
+  .notch{width:126px;height:34px;background:#000;border-radius:20px;position:absolute;left:50%;top:8px;transform:translateX(-50%)}
+  .statusbar .icons{display:flex;align-items:center;gap:6px}
+
+  /* lock screen */
+  .lockbody{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding-bottom:120px}
+  .lockclock{font-size:88px;font-weight:600;color:#fff;letter-spacing:-3px;line-height:1;text-shadow:0 4px 24px rgba(0,0,0,0.35)}
+  .lockdate{font-size:18px;font-weight:500;color:rgba(255,255,255,0.92);margin-top:6px;text-shadow:0 2px 12px rgba(0,0,0,0.3)}
+  .unlockbtn{position:absolute;left:0;right:0;bottom:0;padding:0 0 46px;display:flex;flex-direction:column;align-items:center;gap:14px}
+  .unlock-icon{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,0.18);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.25);font-size:22px}
+  .unlock-label{display:flex;flex-direction:column;align-items:center;gap:2px}
+  .unlock-label span:first-child{font-size:14px;font-weight:500;color:rgba(255,255,255,0.9)}
+  .unlock-label span:last-child{font-size:22px;color:rgba(255,255,255,0.6);line-height:0.6}
+
+  /* desktop */
+  .desktopscroll{flex:1;overflow-y:auto;padding:10px 18px 100px}
+  .card{background:rgba(255,255,255,0.1);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:16px;border:1px solid rgba(255,255,255,0.16);box-shadow:0 8px 24px rgba(0,0,0,0.2)}
+  .searchbar{display:flex;align-items:center;gap:9px;border-radius:24px;padding:11px 18px;margin:8px 6px 22px}
+  .searchbar input{flex:1;border:none;outline:none;font-size:14px;color:#fff;background:transparent;font-family:inherit}
+  .sectionhead{display:flex;justify-content:space-between;align-items:center;padding:0 6px 10px}
+  .sectionhead span:first-child{font-size:14px;font-weight:600;color:#fff}
+  .sectionhead span:last-child{font-size:12px;color:rgba(255,255,255,0.7)}
+  .pinnedgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:24px}
+  .apptile{display:flex;flex-direction:column;align-items:center;gap:7px;padding:8px 4px;border-radius:14px;transition:background .1s}
+  .apptile:active{background:rgba(255,255,255,0.14)}
+  .apptile-icon{width:48px;height:48px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 12px rgba(0,0,0,0.25)}
+  .apptile-label{font-size:11px;font-weight:500;color:rgba(255,255,255,0.92);text-align:center;max-width:62px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .recentgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .recentitem{display:flex;align-items:center;gap:10px;padding:12px}
+  .recenticon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+  .recentname{font-size:12px;font-weight:600;color:#fff;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .recentmeta{font-size:10px;color:rgba(255,255,255,0.65);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+
+  /* taskbar */
+  .taskbar{position:absolute;left:10px;right:10px;bottom:14px;height:60px;border-radius:18px;
+    background:rgba(30,32,60,0.55);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);
+    border:1px solid rgba(255,255,255,0.16);box-shadow:0 8px 30px rgba(0,0,0,0.4);
+    display:flex;align-items:center;justify-content:space-between;padding:0 14px;z-index:20}
+  .widgetsbtn{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;background:rgba(255,255,255,0.06)}
+  .taskcenter{display:flex;align-items:center;gap:8px}
+  .startbtn{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.12)}
+  .startgrid{display:grid;grid-template-columns:1fr 1fr;gap:3px}
+  .startgrid span{width:8px;height:8px;border-radius:2px;background:#4cc2ff}
+  .taskapp{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;background:rgba(255,255,255,0.04)}
+  .tray{display:flex;align-items:center;gap:8px}
+  .trayicons{display:flex;align-items:center;gap:6px;font-size:13px}
+  .trayclock{display:flex;flex-direction:column;align-items:flex-end;line-height:1.15}
+  .trayclock span:first-child{font-size:12px;font-weight:600;color:#fff}
+  .trayclock span:last-child{font-size:9px;color:rgba(255,255,255,0.7)}
+
+  /* widgets panel */
+  .widgetshead{display:flex;align-items:center;gap:10px;padding:8px 18px 12px}
+  .widgetsback{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff}
+  .widgetstitle{font-size:18px;font-weight:600;color:#fff}
+  .widgetsscroll{flex:1;overflow-y:auto;padding:4px 18px 28px;display:flex;flex-direction:column;gap:14px}
+  .widgetcard{border-radius:16px;border:1px solid rgba(255,255,255,0.14);box-shadow:0 8px 26px rgba(0,0,0,0.28);padding:16px;
+    background:rgba(255,255,255,0.08);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+  .weathercard{background:linear-gradient(135deg,rgba(56,132,255,0.55),rgba(124,58,237,0.4))}
+  .weathertop{display:flex;justify-content:space-between;align-items:flex-start}
+  .weathercity{font-size:13px;color:rgba(255,255,255,0.85);font-weight:500}
+  .weathertemp{font-size:44px;font-weight:600;color:#fff;line-height:1.1}
+  .weatherdesc{font-size:12px;color:rgba(255,255,255,0.8)}
+  .weatherbig{font-size:46px}
+  .forecastrow{display:flex;justify-content:space-between;margin-top:14px}
+  .forecastday{display:flex;flex-direction:column;align-items:center;gap:3px}
+  .forecastday span:first-child{font-size:11px;color:rgba(255,255,255,0.8)}
+  .forecastday span:nth-child(2){font-size:17px}
+  .forecastday span:last-child{font-size:12px;font-weight:600;color:#fff}
+  .calheader{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .calheader span:first-child{font-size:14px;font-weight:600;color:#fff}
+  .calheader span:last-child{font-size:11px;color:rgba(255,255,255,0.6)}
+  .calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .calhead{font-size:10px;text-align:center;color:rgba(255,255,255,0.5);font-weight:600}
+  .calday{font-size:11px;text-align:center;padding:4px 0;border-radius:7px;color:rgba(255,255,255,0.85)}
+  .calday.today{font-weight:700;color:#0b1d51;background:#fff}
+  .newstitle{font-size:14px;font-weight:600;color:#fff;margin-bottom:12px}
+  .newslist{display:flex;flex-direction:column;gap:10px}
+  .newsitem{display:flex;gap:10px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.08)}
+  .newsicon{width:44px;height:44px;border-radius:9px;background:linear-gradient(135deg,#4f46e5,#7c3aed);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px}
+  .newsheadline{font-size:12px;font-weight:600;color:#fff;line-height:1.3}
+  .newsmeta{font-size:10px;color:rgba(255,255,255,0.6);margin-top:3px}
+
+  /* app window */
+  .appwindow{flex:1;margin:8px 12px 80px;border-radius:18px;background:rgba(245,246,255,0.97);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,0.35)}
+  .appwindowbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,0.7);border-bottom:1px solid rgba(0,0,0,0.07)}
+  .appwindowtitle{display:flex;align-items:center;gap:8px}
+  .appwindowicon{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px}
+  .appwindowname{font-size:14px;font-weight:600;color:#1c1c1e}
+  .appwindowctrls{display:flex;gap:8px;align-items:center}
+  .appwindowbody{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:30px;text-align:center}
+  .appwindowbody .bigicon{font-size:52px}
+  .appwindowbody .name{font-size:17px;font-weight:600;color:#1c1c1e}
+  .appwindowbody .desc{font-size:13px;color:#6b7280}
+  .closebtn{margin-top:8px;padding:8px 20px;border-radius:18px;background:#0078d4;color:#fff;font-size:13px;font-weight:600}
 </style>
 </head>
 <body>
 <div id="root"></div>
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script>
 'use strict';
-const {useState,useRef,useEffect} = React;
-const h = React.createElement;
 
 /* ── DATA ─────────────────────────────────────────── */
-const PINNED = [
+var PINNED = [
   {id:'edge',name:'Edge',icon:'🌐',color:'#0078d4'},
   {id:'mail',name:'Correo',icon:'✉️',color:'#0a84ff'},
   {id:'photos',name:'Fotos',icon:'🖼️',color:'#7c3aed'},
@@ -34,235 +131,268 @@ const PINNED = [
   {id:'store',name:'Store',icon:'🛍️',color:'#2563eb'},
   {id:'files',name:'Archivos',icon:'📁',color:'#f59e0b'},
   {id:'calc',name:'Calculadora',icon:'🧮',color:'#10b981'},
-  {id:'camera',name:'Cámara',icon:'📷',color:'#ec4899'},
+  {id:'camera',name:'Cámara',icon:'📷',color:'#ec4899'}
 ];
 
-const TASKBAR_APPS = ['🌐','✉️','📁','🖼️','🛍️'];
+var TASKBAR_APPS = ['🌐','✉️','📁','🖼️','🛍️'];
 
-const RECENT = [
+var RECENT = [
   {id:1,name:'Presentación Q3.pptx',meta:'Hace 12 min · PowerPoint',icon:'📊',color:'#d24726'},
   {id:2,name:'Presupuesto 2026.xlsx',meta:'Hace 1 h · Excel',icon:'📈',color:'#107c41'},
   {id:3,name:'Notas reunión.docx',meta:'Ayer · Word',icon:'📝',color:'#185abd'},
-  {id:4,name:'wallpaper_azul.png',meta:'Ayer · Fotos',icon:'🏞️',color:'#7c3aed'},
+  {id:4,name:'wallpaper_azul.png',meta:'Ayer · Fotos',icon:'🏞️',color:'#7c3aed'}
 ];
 
-const NEWS = [
+var NEWS = [
   {id:1,title:'Windows 12 reinventa el escritorio con IA',source:'TechToday',tag:'Tecnología'},
   {id:2,title:'La bolsa cierra al alza por tercer día',source:'Mercados',tag:'Economía'},
-  {id:3,title:'Nuevo récord en eficiencia de paneles solares',source:'Ciencia Hoy',tag:'Ciencia'},
+  {id:3,title:'Nuevo récord en eficiencia de paneles solares',source:'Ciencia Hoy',tag:'Ciencia'}
 ];
 
-/* ── STATUS BAR ───────────────────────────────────── */
-function StatusBar({dark}){
-  const [time,setTime]=useState(()=>{const n=new Date();return`${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')}`});
-  useEffect(()=>{const t=setInterval(()=>{const n=new Date();setTime(`${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')}`)},10000);return()=>clearInterval(t)},[]);
-  const fg=dark?'#ffffff':'#1c1c1e';
-  return h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'14px 28px 6px',background:'transparent',position:'relative',zIndex:30}},
-    h('span',{style:{fontSize:15,fontWeight:600,color:fg,letterSpacing:'-0.3px'}},time),
-    h('div',{style:{width:126,height:34,background:'#000',borderRadius:20,position:'absolute',left:'50%',top:8,transform:'translateX(-50%)'}}),
-    h('div',{style:{display:'flex',alignItems:'center',gap:6}},
-      h('svg',{width:17,height:12,viewBox:'0 0 17 12',fill:'none'},
-        h('rect',{x:0,y:6,width:3,height:6,rx:0.5,fill:fg}),
-        h('rect',{x:4.5,y:4,width:3,height:8,rx:0.5,fill:fg}),
-        h('rect',{x:9,y:2,width:3,height:10,rx:0.5,fill:fg}),
-        h('rect',{x:13.5,y:0,width:3,height:12,rx:0.5,fill:fg})),
-      h('svg',{width:16,height:12,viewBox:'0 0 16 12',fill:'none'},
-        h('path',{d:'M8 9.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z',fill:fg}),
-        h('path',{d:'M3.5 6.5A6.5 6.5 0 0 1 8 4.8a6.5 6.5 0 0 1 4.5 1.7',stroke:fg,strokeWidth:1.3,strokeLinecap:'round',fill:'none'}),
-        h('path',{d:'M1 4A9.9 9.9 0 0 1 8 1.3 9.9 9.9 0 0 1 15 4',stroke:fg,strokeWidth:1.3,strokeLinecap:'round',fill:'none'})),
-      h('svg',{width:25,height:12,viewBox:'0 0 25 12',fill:'none'},
-        h('rect',{x:0.5,y:0.5,width:21,height:11,rx:3.5,stroke:fg,strokeOpacity:0.35}),
-        h('rect',{x:2,y:2,width:16,height:8,rx:2,fill:fg}),
-        h('path',{d:'M23 4v4a2 2 0 0 0 0-4Z',fill:fg,fillOpacity:0.4}))));
+var state = {
+  screen: 'lock', // lock | desktop | widgets
+  openApp: null
+};
+
+function esc(s){
+  var d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
 }
 
-/* ── WALLPAPER ────────────────────────────────────── */
-const WALLPAPER='radial-gradient(120% 80% at 20% 0%,#4f46e5 0%,rgba(79,70,229,0) 55%),radial-gradient(120% 90% at 90% 20%,#7c3aed 0%,rgba(124,58,237,0) 50%),linear-gradient(160deg,#0b1d51 0%,#1e3a8a 40%,#3730a3 75%,#1e1b4b 100%)';
-
 function clockParts(){
-  const n=new Date();
-  const time=`${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')}`;
-  const dias=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-  const meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-  const date=`${dias[n.getDay()]}, ${n.getDate()} de ${meses[n.getMonth()]}`;
-  return {time,date:date.charAt(0).toUpperCase()+date.slice(1)};
+  var n = new Date();
+  var time = n.getHours() + ':' + String(n.getMinutes()).padStart(2,'0');
+  var dias = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  var meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var date = dias[n.getDay()] + ', ' + n.getDate() + ' de ' + meses[n.getMonth()];
+  date = date.charAt(0).toUpperCase() + date.slice(1);
+  return {time: time, date: date};
+}
+
+/* ── ICONS ────────────────────────────────────────── */
+function svgSignal(fg){
+  return '<svg width="17" height="12" viewBox="0 0 17 12" fill="none"><rect x="0" y="6" width="3" height="6" rx="0.5" fill="'+fg+'"/><rect x="4.5" y="4" width="3" height="8" rx="0.5" fill="'+fg+'"/><rect x="9" y="2" width="3" height="10" rx="0.5" fill="'+fg+'"/><rect x="13.5" y="0" width="3" height="12" rx="0.5" fill="'+fg+'"/></svg>';
+}
+function svgWifi(fg){
+  return '<svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 9.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z" fill="'+fg+'"/><path d="M3.5 6.5A6.5 6.5 0 0 1 8 4.8a6.5 6.5 0 0 1 4.5 1.7" stroke="'+fg+'" stroke-width="1.3" stroke-linecap="round" fill="none"/><path d="M1 4A9.9 9.9 0 0 1 8 1.3 9.9 9.9 0 0 1 15 4" stroke="'+fg+'" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>';
+}
+function svgBattery(fg){
+  return '<svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="'+fg+'" stroke-opacity="0.35"/><rect x="2" y="2" width="16" height="8" rx="2" fill="'+fg+'"/><path d="M23 4v4a2 2 0 0 0 0-4Z" fill="'+fg+'" fill-opacity="0.4"/></svg>';
+}
+function svgSearch(){
+  return '<svg width="16" height="16" viewBox="0 0 15 15" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="rgba(255,255,255,0.7)" stroke-width="1.5"/><path d="M10 10l3.5 3.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.5" stroke-linecap="round"/></svg>';
+}
+
+/* ── STATUS BAR ───────────────────────────────────── */
+function renderStatusBar(){
+  var n = new Date();
+  var time = n.getHours() + ':' + String(n.getMinutes()).padStart(2,'0');
+  return '<div class="statusbar"><span class="time">'+time+'</span><div class="notch"></div>' +
+    '<div class="icons">'+svgSignal('#fff')+svgWifi('#fff')+svgBattery('#fff')+'</div></div>';
 }
 
 /* ── LOCK SCREEN ──────────────────────────────────── */
-function LockScreen({onUnlock}){
-  const [c,setC]=useState(clockParts());
-  useEffect(()=>{const t=setInterval(()=>setC(clockParts()),10000);return()=>clearInterval(t)},[]);
-  return h('div',{style:{flex:1,display:'flex',flexDirection:'column',background:WALLPAPER,position:'relative'}},
-    h(StatusBar,{dark:true}),
-    h('div',{style:{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:4,paddingBottom:120}},
-      h('div',{style:{fontSize:88,fontWeight:600,color:'#fff',letterSpacing:'-3px',lineHeight:1,textShadow:'0 4px 24px rgba(0,0,0,0.35)'}},c.time),
-      h('div',{style:{fontSize:18,fontWeight:500,color:'rgba(255,255,255,0.92)',marginTop:6,textShadow:'0 2px 12px rgba(0,0,0,0.3)'}},c.date)),
-    h('button',{onClick:onUnlock,
-      style:{position:'absolute',left:0,right:0,bottom:0,padding:'0 0 46px',display:'flex',flexDirection:'column',alignItems:'center',gap:14,background:'none'}},
-      h('div',{style:{width:46,height:46,borderRadius:'50%',background:'rgba(255,255,255,0.18)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',display:'flex',alignItems:'center',justifyContent:'center',border:'1px solid rgba(255,255,255,0.25)'}},
-        h('span',{style:{fontSize:22}},'🔒')),
-      h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',gap:2}},
-        h('span',{style:{fontSize:14,fontWeight:500,color:'rgba(255,255,255,0.9)'}},'Desliza para desbloquear'),
-        h('span',{style:{fontSize:22,color:'rgba(255,255,255,0.6)',lineHeight:0.6}},'⌃'))));
+function renderLockScreen(){
+  var c = clockParts();
+  return '<div class="wallpaper">' +
+    renderStatusBar() +
+    '<div class="lockbody">' +
+      '<div class="lockclock">'+c.time+'</div>' +
+      '<div class="lockdate">'+c.date+'</div>' +
+    '</div>' +
+    '<button class="unlockbtn" id="unlockBtn">' +
+      '<div class="unlock-icon">🔒</div>' +
+      '<div class="unlock-label"><span>Desliza para desbloquear</span><span>⌃</span></div>' +
+    '</button>' +
+  '</div>';
 }
 
-/* ── PINNED APP TILE ──────────────────────────────── */
-function AppTile({app,onOpen}){
-  const [p,setP]=useState(false);
-  return h('button',{
-    onClick:()=>onOpen&&onOpen(app),onMouseDown:()=>setP(true),onMouseUp:()=>setP(false),onMouseLeave:()=>setP(false),
-    style:{display:'flex',flexDirection:'column',alignItems:'center',gap:7,padding:'8px 4px',borderRadius:14,background:p?'rgba(255,255,255,0.14)':'transparent',transition:'background .1s'}},
-    h('div',{style:{width:48,height:48,borderRadius:13,background:`linear-gradient(145deg,${app.color},rgba(0,0,0,0.15))`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,boxShadow:'0 4px 12px rgba(0,0,0,0.25)'}},app.icon),
-    h('span',{style:{fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.92)',textAlign:'center',maxWidth:62,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},app.name));
+/* ── DESKTOP ──────────────────────────────────────── */
+function renderAppTile(app){
+  return '<button class="apptile" data-open="'+app.id+'">' +
+    '<div class="apptile-icon" style="background:linear-gradient(145deg,'+app.color+',rgba(0,0,0,0.15))">'+app.icon+'</div>' +
+    '<span class="apptile-label">'+esc(app.name)+'</span></button>';
 }
 
-/* ── DESKTOP / START ──────────────────────────────── */
-function Desktop({onOpenWidgets,onOpen}){
-  const [search,setSearch]=useState('');
-  const card={background:'rgba(255,255,255,0.1)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:16,border:'1px solid rgba(255,255,255,0.16)',boxShadow:'0 8px 24px rgba(0,0,0,0.2)'};
-  return h('div',{style:{flex:1,display:'flex',flexDirection:'column',background:WALLPAPER,overflow:'hidden'}},
-    h(StatusBar,{dark:true}),
-    h('div',{style:{flex:1,overflowY:'auto',padding:'10px 18px 100px'}},
-      /* search */
-      h('div',{style:{display:'flex',alignItems:'center',gap:9,...card,borderRadius:24,padding:'11px 18px',margin:'8px 6px 22px'}},
-        h('svg',{width:16,height:16,viewBox:'0 0 15 15',fill:'none',style:{flexShrink:0}},
-          h('circle',{cx:6.5,cy:6.5,r:5,stroke:'rgba(255,255,255,0.7)',strokeWidth:1.5}),
-          h('path',{d:'M10 10l3.5 3.5',stroke:'rgba(255,255,255,0.7)',strokeWidth:1.5,strokeLinecap:'round'})),
-        h('input',{value:search,onChange:e=>setSearch(e.target.value),placeholder:'Buscar aplicaciones, archivos y más',
-          style:{flex:1,border:'none',outline:'none',fontSize:14,color:'#fff',background:'transparent',fontFamily:'inherit'}})),
-      /* pinned */
-      h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'0 6px 10px'}},
-        h('span',{style:{fontSize:14,fontWeight:600,color:'#fff'}},'Fijado'),
-        h('span',{style:{fontSize:12,color:'rgba(255,255,255,0.7)'}},'Todas las apps ›')),
-      h('div',{style:{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:6,marginBottom:24}},
-        PINNED.map(a=>h(AppTile,{key:a.id,app:a,onOpen}))),
-      /* recommended */
-      h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'0 6px 10px'}},
-        h('span',{style:{fontSize:14,fontWeight:600,color:'#fff'}},'Recomendado'),
-        h('span',{style:{fontSize:12,color:'rgba(255,255,255,0.7)'}},'Más ›')),
-      h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}},
-        RECENT.map(r=>h('div',{key:r.id,style:{display:'flex',alignItems:'center',gap:10,...card,padding:'12px 12px'}},
-          h('div',{style:{width:34,height:34,borderRadius:9,background:r.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:17,flexShrink:0}},r.icon),
-          h('div',{style:{minWidth:0}},
-            h('div',{style:{fontSize:12,fontWeight:600,color:'#fff',overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis'}},r.name),
-            h('div',{style:{fontSize:10,color:'rgba(255,255,255,0.65)',overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis'}},r.meta)))))),
-    h(Taskbar,{onOpenWidgets,onOpen}));
+function renderRecentItem(r){
+  return '<div class="card recentitem">' +
+    '<div class="recenticon" style="background:'+r.color+'">'+r.icon+'</div>' +
+    '<div style="min-width:0">' +
+      '<div class="recentname">'+esc(r.name)+'</div>' +
+      '<div class="recentmeta">'+esc(r.meta)+'</div>' +
+    '</div></div>';
+}
+
+function renderDesktop(){
+  return '<div class="wallpaper">' +
+    renderStatusBar() +
+    '<div class="desktopscroll">' +
+      '<div class="card searchbar">'+svgSearch()+'<input id="desktopSearch" placeholder="Buscar aplicaciones, archivos y más"/></div>' +
+      '<div class="sectionhead"><span>Fijado</span><span>Todas las apps ›</span></div>' +
+      '<div class="pinnedgrid">' + PINNED.map(renderAppTile).join('') + '</div>' +
+      '<div class="sectionhead"><span>Recomendado</span><span>Más ›</span></div>' +
+      '<div class="recentgrid">' + RECENT.map(renderRecentItem).join('') + '</div>' +
+    '</div>' +
+    renderTaskbar() +
+  '</div>';
 }
 
 /* ── TASKBAR ──────────────────────────────────────── */
-function Taskbar({onOpenWidgets,onOpen}){
-  const [c,setC]=useState(clockParts());
-  useEffect(()=>{const t=setInterval(()=>setC(clockParts()),10000);return()=>clearInterval(t)},[]);
-  const n=new Date();
-  const fecha=`${n.getDate()}/${n.getMonth()+1}/${n.getFullYear()}`;
-  return h('div',{style:{position:'absolute',left:10,right:10,bottom:14,height:60,borderRadius:18,
-      background:'rgba(30,32,60,0.55)',backdropFilter:'blur(28px) saturate(160%)',WebkitBackdropFilter:'blur(28px) saturate(160%)',
-      border:'1px solid rgba(255,255,255,0.16)',boxShadow:'0 8px 30px rgba(0,0,0,0.4)',
-      display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 14px',zIndex:20}},
-    /* widgets button (left) */
-    h('button',{onClick:onOpenWidgets,style:{width:38,height:38,borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,background:'rgba(255,255,255,0.06)'}},'🌤️'),
-    /* center: start + apps */
-    h('div',{style:{display:'flex',alignItems:'center',gap:8}},
-      h('button',{style:{width:40,height:40,borderRadius:11,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(255,255,255,0.12)'}},
-        h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:3,transform:'rotate(0deg)'}},
-          [0,1,2,3].map(i=>h('span',{key:i,style:{width:8,height:8,borderRadius:2,background:'#4cc2ff'}})))),
-      TASKBAR_APPS.map((ic,i)=>h('button',{key:i,style:{width:38,height:38,borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,background:'rgba(255,255,255,0.04)'}},ic))),
-    /* system tray (right) */
-    h('div',{style:{display:'flex',alignItems:'center',gap:8}},
-      h('div',{style:{display:'flex',alignItems:'center',gap:6}},
-        h('span',{style:{fontSize:13},title:'WiFi'},'📶'),
-        h('span',{style:{fontSize:13},title:'Batería'},'🔋')),
-      h('div',{style:{display:'flex',flexDirection:'column',alignItems:'flex-end',lineHeight:1.15}},
-        h('span',{style:{fontSize:12,fontWeight:600,color:'#fff'}},c.time),
-        h('span',{style:{fontSize:9,color:'rgba(255,255,255,0.7)'}},fecha))));
+function renderTaskbar(){
+  var c = clockParts();
+  var n = new Date();
+  var fecha = n.getDate() + '/' + (n.getMonth()+1) + '/' + n.getFullYear();
+  var apps = TASKBAR_APPS.map(function(ic){ return '<button class="taskapp">'+ic+'</button>'; }).join('');
+  return '<div class="taskbar">' +
+    '<button class="widgetsbtn" id="widgetsBtn">🌤️</button>' +
+    '<div class="taskcenter">' +
+      '<button class="startbtn"><div class="startgrid"><span></span><span></span><span></span><span></span></div></button>' +
+      apps +
+    '</div>' +
+    '<div class="tray">' +
+      '<div class="trayicons"><span title="WiFi">📶</span><span title="Batería">🔋</span></div>' +
+      '<div class="trayclock"><span>'+c.time+'</span><span>'+fecha+'</span></div>' +
+    '</div>' +
+  '</div>';
 }
 
 /* ── WIDGETS PANEL ────────────────────────────────── */
-function Widgets({onClose}){
-  const card={background:'rgba(255,255,255,0.08)',backdropFilter:'blur(22px)',WebkitBackdropFilter:'blur(22px)',borderRadius:16,border:'1px solid rgba(255,255,255,0.14)',boxShadow:'0 8px 26px rgba(0,0,0,0.28)',padding:16};
-  const c=clockParts();
-  const dias=['D','L','M','M','J','V','S'];
-  const today=new Date().getDate();
-  return h('div',{style:{flex:1,display:'flex',flexDirection:'column',background:WALLPAPER,overflow:'hidden'}},
-    h(StatusBar,{dark:true}),
-    h('div',{style:{display:'flex',alignItems:'center',gap:10,padding:'8px 18px 12px'}},
-      h('button',{onClick:onClose,style:{width:34,height:34,borderRadius:10,background:'rgba(255,255,255,0.12)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,color:'#fff'}},'‹'),
-      h('h1',{style:{fontSize:18,fontWeight:600,color:'#fff'}},'Widgets')),
-    h('div',{style:{flex:1,overflowY:'auto',padding:'4px 18px 28px',display:'flex',flexDirection:'column',gap:14}},
-      /* weather */
-      h('div',{style:{...card,background:'linear-gradient(135deg,rgba(56,132,255,0.55),rgba(124,58,237,0.4))'}},
-        h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}},
-          h('div',null,
-            h('div',{style:{fontSize:13,color:'rgba(255,255,255,0.85)',fontWeight:500}},'Buenos Aires'),
-            h('div',{style:{fontSize:44,fontWeight:600,color:'#fff',lineHeight:1.1}},'21°'),
-            h('div',{style:{fontSize:12,color:'rgba(255,255,255,0.8)'}},'Parcialmente nublado')),
-          h('div',{style:{fontSize:46}},'⛅')),
-        h('div',{style:{display:'flex',justifyContent:'space-between',marginTop:14}},
-          [['Jue','18°','🌧️'],['Vie','23°','☀️'],['Sáb','20°','⛅'],['Dom','17°','🌦️']].map((d,i)=>
-            h('div',{key:i,style:{display:'flex',flexDirection:'column',alignItems:'center',gap:3}},
-              h('span',{style:{fontSize:11,color:'rgba(255,255,255,0.8)'}},d[0]),
-              h('span',{style:{fontSize:17}},d[2]),
-              h('span',{style:{fontSize:12,fontWeight:600,color:'#fff'}},d[1]))))),
-      /* calendar */
-      h('div',{style:card},
-        h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}},
-          h('span',{style:{fontSize:14,fontWeight:600,color:'#fff'}},'📅 '+c.date),
-          h('span',{style:{fontSize:11,color:'rgba(255,255,255,0.6)'}},'Junio 2026')),
-        h('div',{style:{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:4}},
-          dias.map((d,i)=>h('span',{key:'h'+i,style:{fontSize:10,textAlign:'center',color:'rgba(255,255,255,0.5)',fontWeight:600}},d)),
-          Array.from({length:30},(_,i)=>i+1).map(day=>
-            h('span',{key:day,style:{fontSize:11,textAlign:'center',padding:'4px 0',borderRadius:7,fontWeight:day===today?700:400,
-              color:day===today?'#0b1d51':'rgba(255,255,255,0.85)',background:day===today?'#fff':'transparent'}},day)))),
-      /* news */
-      h('div',{style:card},
-        h('div',{style:{fontSize:14,fontWeight:600,color:'#fff',marginBottom:12}},'📰 Noticias'),
-        h('div',{style:{display:'flex',flexDirection:'column',gap:10}},
-          NEWS.map(n=>h('div',{key:n.id,style:{display:'flex',gap:10,paddingBottom:10,borderBottom:'1px solid rgba(255,255,255,0.08)'}},
-            h('div',{style:{width:44,height:44,borderRadius:9,background:'linear-gradient(135deg,#4f46e5,#7c3aed)',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20}},'🗞️'),
-            h('div',{style:{minWidth:0}},
-              h('div',{style:{fontSize:12,fontWeight:600,color:'#fff',lineHeight:1.3}},n.title),
-              h('div',{style:{fontSize:10,color:'rgba(255,255,255,0.6)',marginTop:3}},`${n.source} · ${n.tag}`))))))));
+function renderWidgets(){
+  var c = clockParts();
+  var dias = ['D','L','M','M','J','V','S'];
+  var today = new Date().getDate();
+  var monthLabel = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][new Date().getMonth()] + ' ' + new Date().getFullYear();
+
+  var forecast = [['Jue','18°','🌧️'],['Vie','23°','☀️'],['Sáb','20°','⛅'],['Dom','17°','🌦️']]
+    .map(function(d){
+      return '<div class="forecastday"><span>'+d[0]+'</span><span>'+d[2]+'</span><span>'+d[1]+'</span></div>';
+    }).join('');
+
+  var calHeads = dias.map(function(d,i){ return '<span class="calhead" key="h'+i+'">'+d+'</span>'; }).join('');
+  var calDays = '';
+  for(var day=1; day<=30; day++){
+    calDays += '<span class="calday'+(day===today?' today':'')+'">'+day+'</span>';
+  }
+
+  var newsItems = NEWS.map(function(n){
+    return '<div class="newsitem">' +
+      '<div class="newsicon">🗞️</div>' +
+      '<div style="min-width:0">' +
+        '<div class="newsheadline">'+esc(n.title)+'</div>' +
+        '<div class="newsmeta">'+esc(n.source)+' · '+esc(n.tag)+'</div>' +
+      '</div></div>';
+  }).join('');
+
+  return '<div class="wallpaper">' +
+    renderStatusBar() +
+    '<div class="widgetshead">' +
+      '<button class="widgetsback" id="widgetsBack">‹</button>' +
+      '<span class="widgetstitle">Widgets</span>' +
+    '</div>' +
+    '<div class="widgetsscroll">' +
+      '<div class="widgetcard weathercard">' +
+        '<div class="weathertop">' +
+          '<div>' +
+            '<div class="weathercity">Buenos Aires</div>' +
+            '<div class="weathertemp">21°</div>' +
+            '<div class="weatherdesc">Parcialmente nublado</div>' +
+          '</div>' +
+          '<div class="weatherbig">⛅</div>' +
+        '</div>' +
+        '<div class="forecastrow">'+forecast+'</div>' +
+      '</div>' +
+      '<div class="widgetcard">' +
+        '<div class="calheader"><span>📅 '+c.date+'</span><span>'+monthLabel+'</span></div>' +
+        '<div class="calgrid">'+calHeads+calDays+'</div>' +
+      '</div>' +
+      '<div class="widgetcard">' +
+        '<div class="newstitle">📰 Noticias</div>' +
+        '<div class="newslist">'+newsItems+'</div>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
 }
 
-/* ── APP WINDOW (opened app) ──────────────────────── */
-function AppWindow({app,onClose}){
-  return h('div',{style:{flex:1,display:'flex',flexDirection:'column',background:WALLPAPER,overflow:'hidden'}},
-    h(StatusBar,{dark:true}),
-    h('div',{style:{flex:1,margin:'8px 12px 80px',borderRadius:18,background:'rgba(245,246,255,0.97)',display:'flex',flexDirection:'column',overflow:'hidden',boxShadow:'0 10px 40px rgba(0,0,0,0.35)'}},
-      h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 14px',background:'rgba(255,255,255,0.7)',borderBottom:'1px solid rgba(0,0,0,0.07)'}},
-        h('div',{style:{display:'flex',alignItems:'center',gap:8}},
-          h('div',{style:{width:24,height:24,borderRadius:7,background:app.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:14}},app.icon),
-          h('span',{style:{fontSize:14,fontWeight:600,color:'#1c1c1e'}},app.name)),
-        h('div',{style:{display:'flex',gap:8}},
-          h('span',{style:{width:13,height:2,background:'#888',alignSelf:'center'}}),
-          h('span',{style:{width:11,height:11,border:'1.5px solid #888',borderRadius:2}}),
-          h('button',{onClick:onClose,style:{fontSize:15,color:'#888',lineHeight:1}},'✕'))),
-      h('div',{style:{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:10,padding:30,textAlign:'center'}},
-        h('div',{style:{fontSize:52}},app.icon),
-        h('div',{style:{fontSize:17,fontWeight:600,color:'#1c1c1e'}},app.name),
-        h('div',{style:{fontSize:13,color:'#6b7280'}},'Esta es una vista conceptual de la app en Windows 12.'),
-        h('button',{onClick:onClose,style:{marginTop:8,padding:'8px 20px',borderRadius:18,background:'#0078d4',color:'#fff',fontSize:13,fontWeight:600}},'Volver al escritorio'))));
+/* ── APP WINDOW ───────────────────────────────────── */
+function renderAppWindow(app){
+  return '<div class="wallpaper">' +
+    renderStatusBar() +
+    '<div class="appwindow">' +
+      '<div class="appwindowbar">' +
+        '<div class="appwindowtitle">' +
+          '<div class="appwindowicon" style="background:'+app.color+'">'+app.icon+'</div>' +
+          '<span class="appwindowname">'+esc(app.name)+'</span>' +
+        '</div>' +
+        '<div class="appwindowctrls">' +
+          '<span style="width:13px;height:2px;background:#888;align-self:center"></span>' +
+          '<span style="width:11px;height:11px;border:1.5px solid #888;border-radius:2px"></span>' +
+          '<button id="appCloseX" style="font-size:15px;color:#888;line-height:1">✕</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="appwindowbody">' +
+        '<div class="bigicon">'+app.icon+'</div>' +
+        '<div class="name">'+esc(app.name)+'</div>' +
+        '<div class="desc">Esta es una vista conceptual de la app en Windows 12.</div>' +
+        '<button class="closebtn" id="appCloseBtn">Volver al escritorio</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
 }
 
-/* ── APP ──────────────────────────────────────────── */
-function App(){
-  const [screen,setScreen]=useState('lock'); // lock | desktop | widgets
-  const [openApp,setOpenApp]=useState(null);
-
-  const phone={id:'phone',width:390,minHeight:844,background:'#0b1d51',borderRadius:48,overflow:'hidden',
-    boxShadow:'0 24px 80px rgba(0,0,0,0.45),inset 0 0 0 1px rgba(255,255,255,0.15)',
-    display:'flex',flexDirection:'column',position:'relative'};
-
-  let body;
-  if(screen==='lock') body=h(LockScreen,{onUnlock:()=>setScreen('desktop')});
-  else if(openApp) body=h(AppWindow,{app:openApp,onClose:()=>setOpenApp(null)});
-  else if(screen==='widgets') body=h(Widgets,{onClose:()=>setScreen('desktop')});
-  else body=h(Desktop,{onOpenWidgets:()=>setScreen('widgets'),onOpen:setOpenApp});
-
-  return h('div',{style:phone},body);
+/* ── MAIN RENDER ──────────────────────────────────── */
+function render(){
+  var root = document.getElementById('root');
+  var body;
+  if(state.screen === 'lock'){
+    body = renderLockScreen();
+  } else if(state.openApp){
+    body = renderAppWindow(state.openApp);
+  } else if(state.screen === 'widgets'){
+    body = renderWidgets();
+  } else {
+    body = renderDesktop();
+  }
+  root.innerHTML = '<div id="phone">' + body + '</div>';
+  attachEvents();
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(h(React.StrictMode,null,h(App)));
+function attachEvents(){
+  var unlockBtn = document.getElementById('unlockBtn');
+  if(unlockBtn) unlockBtn.addEventListener('click', function(){ state.screen = 'desktop'; render(); });
+
+  var widgetsBtn = document.getElementById('widgetsBtn');
+  if(widgetsBtn) widgetsBtn.addEventListener('click', function(){ state.screen = 'widgets'; render(); });
+
+  var widgetsBack = document.getElementById('widgetsBack');
+  if(widgetsBack) widgetsBack.addEventListener('click', function(){ state.screen = 'desktop'; render(); });
+
+  var tiles = document.querySelectorAll('.apptile');
+  tiles.forEach(function(el){
+    el.addEventListener('click', function(){
+      var id = el.getAttribute('data-open');
+      var app = PINNED.filter(function(a){ return a.id===id; })[0];
+      state.openApp = app;
+      render();
+    });
+  });
+
+  var closeX = document.getElementById('appCloseX');
+  var closeBtn = document.getElementById('appCloseBtn');
+  function closeApp(){ state.openApp = null; render(); }
+  if(closeX) closeX.addEventListener('click', closeApp);
+  if(closeBtn) closeBtn.addEventListener('click', closeApp);
+}
+
+render();
+setInterval(function(){
+  var t = document.querySelector('.statusbar .time');
+  if(t){ var n=new Date(); t.textContent = n.getHours()+':'+String(n.getMinutes()).padStart(2,'0'); }
+  var lc = document.querySelector('.lockclock');
+  if(lc){ var c=clockParts(); lc.textContent=c.time; var ld=document.querySelector('.lockdate'); if(ld) ld.textContent=c.date; }
+  var tc = document.querySelector('.trayclock');
+  if(tc){ var c2=clockParts(); var spans=tc.querySelectorAll('span'); if(spans[0]) spans[0].textContent=c2.time; }
+}, 10000);
 </script>
 </body>
 </html>

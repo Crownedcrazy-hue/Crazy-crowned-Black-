@@ -4,253 +4,403 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>Dealism — Mensajes</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%;background:#e5e7eb;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-font-smoothing:antialiased}
+  html,body{height:100%;background:#e5e7eb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
   #root{min-height:100%;display:flex;justify-content:center;align-items:flex-start;background:#e5e7eb;padding:20px 0}
   button{font-family:inherit;cursor:pointer;border:none;background:none;padding:0}
   ::-webkit-scrollbar{width:0}
   input:focus{outline:none}
+  #phone{width:390px;min-height:844px;background:#f2f2f7;border-radius:48px;overflow:hidden;
+    box-shadow:0 24px 80px rgba(0,0,0,0.35),inset 0 0 0 1px rgba(255,255,255,0.15);
+    display:flex;flex-direction:column;position:relative}
   @media(max-width:440px){#root{padding:0}#phone{border-radius:0!important;min-height:100vh!important;width:100%!important}}
+
+  .statusbar{display:flex;align-items:center;justify-content:space-between;padding:14px 28px 6px;background:#f2f2f7;position:relative;z-index:10}
+  .statusbar .time{font-size:15px;font-weight:600;color:#1c1c1e;letter-spacing:-0.3px}
+  .notch{width:126px;height:34px;background:#1c1c1e;border-radius:20px;position:absolute;left:50%;top:8px;transform:translateX(-50%)}
+  .statusbar .icons{display:flex;align-items:center;gap:6px}
+
+  .browserbar{display:flex;align-items:center;gap:8px;padding:6px 14px 10px;background:#f2f2f7}
+  .nav-btn{width:34px;height:34px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .urlbar{flex:1;background:#e5e5ea;border-radius:10px;height:36px;display:flex;align-items:center;justify-content:center;gap:5px;padding:0 12px}
+  .urlbar span{font-size:15px;color:#1c1c1e}
+
+  h1.heading{text-align:center;font-size:17px;font-weight:600;color:#1c1c1e;padding:14px 0 10px;background:#f2f2f7}
+
+  .tabs{display:flex;gap:8px;padding:4px 16px 12px;background:#f2f2f7}
+  .tab{display:flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;font-size:14px;font-weight:500;background:#fff;color:#3c3c43;box-shadow:0 1px 3px rgba(0,0,0,0.08);transition:all .15s}
+  .tab.active{background:#1c1c1e;color:#fff;box-shadow:none}
+  .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .dot-wa{background:#25d366}
+  .dot-ig{background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)}
+
+  .searchrow{display:flex;align-items:center;gap:8px;padding:0 16px 10px}
+  .searchbox{flex:1;display:flex;align-items:center;gap:8px;background:#fff;border-radius:10px;padding:8px 12px;box-shadow:0 1px 3px rgba(0,0,0,0.07)}
+  .searchbox input{flex:1;border:none;outline:none;font-size:15px;color:#1c1c1e;background:transparent;font-family:inherit}
+  .botbtn{width:38px;height:38px;border-radius:50%;background:#e5e5ea;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+
+  .scrollarea{flex:1;overflow-y:auto;padding-bottom:8px}
+  .convlist{display:flex;flex-direction:column;gap:1px;padding:0 12px}
+  .convitem{display:flex;align-items:center;gap:12px;background:#fff;border-radius:14px;padding:12px 14px;cursor:pointer;margin-bottom:4px;box-shadow:0 1px 3px rgba(0,0,0,0.06);transition:background .1s;user-select:none}
+  .convitem:active{background:#f2f2f7}
+  .avatarwrap{position:relative;flex-shrink:0;width:50px;height:50px}
+  .avatarcircle{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;font-weight:600}
+  .channelbadge{position:absolute;bottom:0;right:0;width:18px;height:18px;border-radius:50%;border:2px solid #fff;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .percentbadge{position:absolute;top:-4px;left:-4px;border-radius:10px;padding:2px 5px;border:1.5px solid #fff;min-width:30px;text-align:center}
+  .percentbadge span{font-size:10px;font-weight:700;color:#92400e}
+  .convcontent{flex:1;min-width:0}
+  .convtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+  .convname{font-size:15px;font-weight:600;color:#1c1c1e}
+  .convtime{font-size:12px;color:#8e8e93;flex-shrink:0}
+  .convbottom{display:flex;align-items:center;gap:3px}
+  .checkmark{color:#34c759;font-size:12px;flex-shrink:0}
+  .lastmsg{font-size:13px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1}
+  .countbadge{background:#34c759;color:#fff;font-size:11px;font-weight:700;border-radius:10px;padding:1px 6px;flex-shrink:0;margin-left:auto}
+  .emptystate{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 0}
+  .emptystate span{font-size:32px}
+  .emptystate p{margin-top:8px;color:#8e8e93;font-size:14px}
+
+  .bottomnav{display:flex;align-items:center;justify-content:space-around;background:#fff;border-top:1px solid rgba(0,0,0,0.08);padding:8px 0 24px;flex-shrink:0}
+  .navitem{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 8px;cursor:pointer;min-width:52px}
+  .navlabel{font-size:10px;color:#8e8e93}
+  .navlabel.active{font-weight:600;color:#1c1c1e}
+  .mascota-circle{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#818cf8);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(139,92,246,0.4);font-size:22px}
+
+  .chatview{flex:1;display:flex;flex-direction:column;background:#f2f2f7;overflow:hidden}
+  .chatheader{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#fff;border-bottom:1px solid rgba(0,0,0,0.08)}
+  .backbtn{display:flex;align-items:center;gap:4px}
+  .backbtn span{font-size:16px;color:#007aff}
+  .chatcontact{display:flex;flex-direction:column;align-items:center;gap:2px}
+  .chatname{font-size:13px;font-weight:600;color:#1c1c1e}
+  .chatsub{font-size:10px;color:#8e8e93}
+  .avatarsmall{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700}
+  .messagearea{flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:8px}
+  .bubblerow{display:flex}
+  .bubblerow.me{justify-content:flex-end}
+  .bubblerow.them{justify-content:flex-start}
+  .bubble{border-radius:18px 18px 18px 4px;padding:10px 14px;max-width:75%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.08);display:flex;flex-direction:column;gap:4px}
+  .bubble.me{border-radius:18px 18px 4px 18px;background:#1c1c1e;box-shadow:none}
+  .bubbletext{font-size:15px;line-height:1.4;color:#1c1c1e}
+  .bubble.me .bubbletext{color:#fff}
+  .bubbletime{font-size:10px;color:#8e8e93;align-self:flex-end}
+  .bubble.me .bubbletime{color:rgba(255,255,255,0.45)}
+  .inputarea{background:#fff;border-top:1px solid rgba(0,0,0,0.08);padding:10px 14px 28px}
+  .inputrow{display:flex;align-items:center;gap:8px;background:#f2f2f7;border-radius:22px;padding:6px 6px 6px 14px}
+  .inputrow input{flex:1;border:none;outline:none;font-size:15px;color:#1c1c1e;background:transparent;font-family:inherit}
+  .sendbtn{width:34px;height:34px;border-radius:50%;background:#c7c7cc;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
+  .sendbtn.enabled{background:#1c1c1e;cursor:pointer}
 </style>
 </head>
 <body>
 <div id="root"></div>
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script>
 'use strict';
-const {useState,useRef,useEffect} = React;
-const h = React.createElement;
 
 /* ── DATA ─────────────────────────────────────────── */
-const CONVERSATIONS = [
+var CONVERSATIONS = [
   {id:1,name:'casa',initials:'🏠',avatarColor:'#2563eb',channel:'whatsapp',lastMessage:'Entendido, cajero con experiencia 🔥 ¿...',time:'16:37',badge:'10%',badgeType:'percent-positive',read:true},
   {id:2,name:'Tom Sego',initials:'TS',avatarColor:'#7c3aed',channel:'whatsapp',lastMessage:'Recientemente vuelto',time:'16:24',badge:'26%',badgeType:'percent-positive',read:true},
   {id:3,name:'Nahuel',initials:'N',avatarColor:'#dc2626',channel:'instagram',lastMessage:'Te falta mucho',time:'16:10',badge:'7',badgeType:'count',read:false},
   {id:4,name:'Asistente 1',initials:'A1',avatarColor:'#059669',channel:'whatsapp',lastMessage:'Te paso un cbu maca?',time:'15:49',badge:null,badgeType:null,read:true},
   {id:5,name:'Nayelii',initials:'Na',avatarColor:'#d97706',channel:'whatsapp',lastMessage:'¿Contás con experiencia o sería la prim...',time:'14:52',badge:null,badgeType:null,read:true},
   {id:6,name:'Maxpubli',initials:'MP',avatarColor:'#0891b2',channel:'whatsapp',lastMessage:'¡Sí, estoy! 👋 Te había preguntado si y...',time:'11:42',badge:'-20%',badgeType:'percent-negative',read:true},
-  {id:7,name:'Familia en línea',initials:'FL',avatarColor:'#be185d',channel:'whatsapp',lastMessage:'Genial, nos vemos mañana 👍',time:'10:10',badge:null,badgeType:null,read:true},
+  {id:7,name:'Familia en línea',initials:'FL',avatarColor:'#be185d',channel:'whatsapp',lastMessage:'Genial, nos vemos mañana 👍',time:'10:10',badge:null,badgeType:null,read:true}
 ];
 
-const INITIAL_MESSAGES = {
+var INITIAL_MESSAGES = {
   1:[{id:1,from:'them',text:'Hola! Necesito un cajero con experiencia para este fin de semana 🔥',time:'16:30'},{id:2,from:'me',text:'Entendido, cajero con experiencia. ¿Para cuántas personas?',time:'16:37'}],
   2:[{id:1,from:'them',text:'Recientemente vuelto al negocio, ¿tienen disponibilidad?',time:'16:20'},{id:2,from:'me',text:'Claro que sí, con gusto te ayudamos.',time:'16:24'}],
-  3:[{id:1,from:'them',text:'Te falta mucho para terminar?',time:'16:10'}],
+  3:[{id:1,from:'them',text:'Te falta mucho para terminar?',time:'16:10'}]
 };
 
-/* ── ICONS ────────────────────────────────────────── */
-const WA = () => h('svg',{width:12,height:12,viewBox:'0 0 12 12',fill:'none'},
-  h('circle',{cx:6,cy:6,r:6,fill:'#25d366'}),
-  h('path',{d:'M6 2.5a3.5 3.5 0 0 1 3.03 5.24l.47 1.76-1.83-.46A3.5 3.5 0 1 1 6 2.5Z',fill:'white'}));
+/* ── STATE ────────────────────────────────────────── */
+var state = {
+  activeTab: 'hacer',
+  activeNav: 'mensaje',
+  search: '',
+  chat: null,
+  messages: {}
+};
 
-const IG = () => h('svg',{width:12,height:12,viewBox:'0 0 12 12',fill:'none'},
-  h('rect',{width:12,height:12,rx:3,fill:'url(#ig)'}),
-  h('circle',{cx:6,cy:6,r:2.2,stroke:'white',strokeWidth:1.2,fill:'none'}),
-  h('circle',{cx:9,cy:3,r:0.8,fill:'white'}),
-  h('defs',null,h('radialGradient',{id:'ig',cx:'30%',cy:'100%',r:'120%'},
-    h('stop',{offset:'0%',stopColor:'#fdf497'}),
-    h('stop',{offset:'40%',stopColor:'#fd5949'}),
-    h('stop',{offset:'70%',stopColor:'#d6249f'}),
-    h('stop',{offset:'100%',stopColor:'#285AEB'}))));
-
-/* ── STATUS BAR ───────────────────────────────────── */
-function StatusBar(){
-  const [time,setTime]=useState(()=>{const n=new Date();return`${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')}`});
-  useEffect(()=>{const t=setInterval(()=>{const n=new Date();setTime(`${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')}`)},10000);return()=>clearInterval(t)},[]);
-  return h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'14px 28px 6px',background:'#f2f2f7',position:'relative',zIndex:10}},
-    h('span',{style:{fontSize:15,fontWeight:600,color:'#1c1c1e',letterSpacing:'-0.3px'}},time),
-    h('div',{style:{width:126,height:34,background:'#1c1c1e',borderRadius:20,position:'absolute',left:'50%',top:8,transform:'translateX(-50%)'}}),
-    h('div',{style:{display:'flex',alignItems:'center',gap:6}},
-      h('svg',{width:17,height:12,viewBox:'0 0 17 12',fill:'none'},
-        h('rect',{x:0,y:6,width:3,height:6,rx:0.5,fill:'#1c1c1e'}),
-        h('rect',{x:4.5,y:4,width:3,height:8,rx:0.5,fill:'#1c1c1e'}),
-        h('rect',{x:9,y:2,width:3,height:10,rx:0.5,fill:'#1c1c1e'}),
-        h('rect',{x:13.5,y:0,width:3,height:12,rx:0.5,fill:'#1c1c1e'})),
-      h('svg',{width:16,height:12,viewBox:'0 0 16 12',fill:'none'},
-        h('path',{d:'M8 9.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z',fill:'#1c1c1e'}),
-        h('path',{d:'M3.5 6.5A6.5 6.5 0 0 1 8 4.8a6.5 6.5 0 0 1 4.5 1.7',stroke:'#1c1c1e',strokeWidth:1.3,strokeLinecap:'round',fill:'none'}),
-        h('path',{d:'M1 4A9.9 9.9 0 0 1 8 1.3 9.9 9.9 0 0 1 15 4',stroke:'#1c1c1e',strokeWidth:1.3,strokeLinecap:'round',fill:'none'})),
-      h('svg',{width:25,height:12,viewBox:'0 0 25 12',fill:'none'},
-        h('rect',{x:0.5,y:0.5,width:21,height:11,rx:3.5,stroke:'#1c1c1e',strokeOpacity:0.35}),
-        h('rect',{x:2,y:2,width:16,height:8,rx:2,fill:'#1c1c1e'}),
-        h('path',{d:'M23 4v4a2 2 0 0 0 0-4Z',fill:'#1c1c1e',fillOpacity:0.4}))));
+/* ── ICONS (raw SVG strings) ──────────────────────── */
+function svgWA(){
+  return '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="6" fill="#25d366"/><path d="M6 2.5a3.5 3.5 0 0 1 3.03 5.24l.47 1.76-1.83-.46A3.5 3.5 0 1 1 6 2.5Z" fill="white"/></svg>';
+}
+function svgIG(){
+  return '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><defs><radialGradient id="ig" cx="30%" cy="100%" r="120%"><stop offset="0%" stop-color="#fdf497"/><stop offset="40%" stop-color="#fd5949"/><stop offset="70%" stop-color="#d6249f"/><stop offset="100%" stop-color="#285AEB"/></radialGradient></defs><rect width="12" height="12" rx="3" fill="url(#ig)"/><circle cx="6" cy="6" r="2.2" stroke="white" stroke-width="1.2" fill="none"/><circle cx="9" cy="3" r="0.8" fill="white"/></svg>';
+}
+function svgBack(){
+  return '<svg width="9" height="16" viewBox="0 0 9 16" fill="none"><path d="M8 1L1 8l7 7" stroke="#007aff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+function svgShare(){
+  return '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 1v11M4 6l5-5 5 5" stroke="#007aff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12v3a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3" stroke="#007aff" stroke-width="1.7" stroke-linecap="round"/></svg>';
+}
+function svgLock(){
+  return '<svg width="11" height="13" viewBox="0 0 11 13" fill="none"><rect x="1" y="5.5" width="9" height="7" rx="1.5" stroke="#3c3c43" stroke-opacity="0.6" stroke-width="1.2"/><path d="M3 5.5V3.5a2.5 2.5 0 0 1 5 0v2" stroke="#3c3c43" stroke-opacity="0.6" stroke-width="1.2" stroke-linecap="round"/></svg>';
+}
+function svgSearch(){
+  return '<svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="#8e8e93" stroke-width="1.5"/><path d="M10 10l3.5 3.5" stroke="#8e8e93" stroke-width="1.5" stroke-linecap="round"/></svg>';
+}
+function svgSend(){
+  return '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 9h14M10 3l6 6-6 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+function svgSignal(){
+  return '<svg width="17" height="12" viewBox="0 0 17 12" fill="none"><rect x="0" y="6" width="3" height="6" rx="0.5" fill="#1c1c1e"/><rect x="4.5" y="4" width="3" height="8" rx="0.5" fill="#1c1c1e"/><rect x="9" y="2" width="3" height="10" rx="0.5" fill="#1c1c1e"/><rect x="13.5" y="0" width="3" height="12" rx="0.5" fill="#1c1c1e"/></svg>';
+}
+function svgWifi(){
+  return '<svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 9.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z" fill="#1c1c1e"/><path d="M3.5 6.5A6.5 6.5 0 0 1 8 4.8a6.5 6.5 0 0 1 4.5 1.7" stroke="#1c1c1e" stroke-width="1.3" stroke-linecap="round" fill="none"/><path d="M1 4A9.9 9.9 0 0 1 8 1.3 9.9 9.9 0 0 1 15 4" stroke="#1c1c1e" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>';
+}
+function svgBattery(){
+  return '<svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="#1c1c1e" stroke-opacity="0.35"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#1c1c1e"/><path d="M23 4v4a2 2 0 0 0 0-4Z" fill="#1c1c1e" fill-opacity="0.4"/></svg>';
 }
 
-/* ── BROWSER BAR ──────────────────────────────────── */
-function BrowserBar(){
-  return h('div',{style:{display:'flex',alignItems:'center',gap:8,padding:'6px 14px 10px',background:'#f2f2f7'}},
-    h('button',{style:{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center'}},
-      h('svg',{width:9,height:16,viewBox:'0 0 9 16',fill:'none'},
-        h('path',{d:'M8 1L1 8l7 7',stroke:'#007aff',strokeWidth:2,strokeLinecap:'round',strokeLinejoin:'round'}))),
-    h('div',{style:{flex:1,background:'#e5e5ea',borderRadius:10,height:36,display:'flex',alignItems:'center',justifyContent:'center',gap:5,padding:'0 12px'}},
-      h('svg',{width:11,height:13,viewBox:'0 0 11 13',fill:'none'},
-        h('rect',{x:1,y:5.5,width:9,height:7,rx:1.5,stroke:'#3c3c43',strokeOpacity:0.6,strokeWidth:1.2}),
-        h('path',{d:'M3 5.5V3.5a2.5 2.5 0 0 1 5 0v2',stroke:'#3c3c43',strokeOpacity:0.6,strokeWidth:1.2,strokeLinecap:'round'})),
-      h('span',{style:{fontSize:15,color:'#1c1c1e'}},'app.dealism.ai')),
-    h('button',{style:{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center'}},
-      h('svg',{width:18,height:18,viewBox:'0 0 18 18',fill:'none'},
-        h('path',{d:'M9 1v11M4 6l5-5 5 5',stroke:'#007aff',strokeWidth:1.7,strokeLinecap:'round',strokeLinejoin:'round'}),
-        h('path',{d:'M2 12v3a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3',stroke:'#007aff',strokeWidth:1.7,strokeLinecap:'round'}))));
+function esc(s){
+  var d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
 }
 
-/* ── FILTER TABS ──────────────────────────────────── */
-function FilterTabs({active,onChange}){
-  const tabs=[{id:'hacer',label:'Hacer'},{id:'whatsapp',label:'WhatsApp'},{id:'instagram',label:'Instagram'}];
-  return h('div',{style:{display:'flex',gap:8,padding:'4px 16px 12px',background:'#f2f2f7'}},
-    tabs.map(t=>h('button',{key:t.id,
-      style:{display:'flex',alignItems:'center',gap:5,padding:'6px 14px',borderRadius:20,fontSize:14,fontWeight:500,
-        background:active===t.id?'#1c1c1e':'#fff',color:active===t.id?'#fff':'#3c3c43',
-        boxShadow:active===t.id?'none':'0 1px 3px rgba(0,0,0,0.08)',transition:'all .15s'},
-      onClick:()=>onChange(t.id)},
-      t.id==='whatsapp'&&h('span',{style:{width:8,height:8,borderRadius:'50%',background:'#25d366',flexShrink:0}}),
-      t.id==='instagram'&&h('span',{style:{width:8,height:8,borderRadius:'50%',
-        background:'linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)',flexShrink:0}}),
-      t.label)));
+/* ── RENDER FUNCTIONS ─────────────────────────────── */
+function renderStatusBar(){
+  var n = new Date();
+  var time = n.getHours() + ':' + String(n.getMinutes()).padStart(2,'0');
+  return '<div class="statusbar"><span class="time">'+time+'</span><div class="notch"></div>' +
+    '<div class="icons">'+svgSignal()+svgWifi()+svgBattery()+'</div></div>';
 }
 
-/* ── SEARCH BAR ───────────────────────────────────── */
-function SearchBar({value,onChange}){
-  return h('div',{style:{display:'flex',alignItems:'center',gap:8,padding:'0 16px 10px'}},
-    h('div',{style:{flex:1,display:'flex',alignItems:'center',gap:8,background:'#fff',borderRadius:10,padding:'8px 12px',boxShadow:'0 1px 3px rgba(0,0,0,0.07)'}},
-      h('svg',{width:15,height:15,viewBox:'0 0 15 15',fill:'none',style:{flexShrink:0}},
-        h('circle',{cx:6.5,cy:6.5,r:5,stroke:'#8e8e93',strokeWidth:1.5}),
-        h('path',{d:'M10 10l3.5 3.5',stroke:'#8e8e93',strokeWidth:1.5,strokeLinecap:'round'})),
-      h('input',{style:{flex:1,border:'none',outline:'none',fontSize:15,color:'#1c1c1e',background:'transparent',fontFamily:'inherit'},
-        type:'text',placeholder:'Buscar',value,onChange:e=>onChange(e.target.value)})),
-    h('div',{style:{width:38,height:38,borderRadius:'50%',background:'#e5e5ea',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18}},
-      '🤖'));
+function renderBrowserBar(){
+  return '<div class="browserbar">' +
+    '<button class="nav-btn">'+svgBack()+'</button>' +
+    '<div class="urlbar">'+svgLock()+'<span>app.dealism.ai</span></div>' +
+    '<button class="nav-btn">'+svgShare()+'</button></div>';
 }
 
-/* ── CONVERSATION ITEM ────────────────────────────── */
-function ConvItem({c,onSelect}){
-  const [pressed,setPressed]=useState(false);
-  return h('div',{
-    style:{display:'flex',alignItems:'center',gap:12,background:pressed?'#f2f2f7':'#fff',borderRadius:14,padding:'12px 14px',cursor:'pointer',marginBottom:4,boxShadow:'0 1px 3px rgba(0,0,0,0.06)',transition:'background .1s',userSelect:'none'},
-    onClick:()=>onSelect(c),onMouseDown:()=>setPressed(true),onMouseUp:()=>setPressed(false),onMouseLeave:()=>setPressed(false)},
-    h('div',{style:{position:'relative',flexShrink:0,width:50,height:50}},
-      h('div',{style:{width:50,height:50,borderRadius:'50%',background:c.avatarColor,display:'flex',alignItems:'center',justifyContent:'center'}},
-        h('span',{style:{color:'#fff',fontSize:17,fontWeight:600}},c.initials)),
-      h('div',{style:{position:'absolute',bottom:0,right:0,width:18,height:18,borderRadius:'50%',border:'2px solid #fff',overflow:'hidden',display:'flex',alignItems:'center',justifyContent:'center',background:c.channel==='whatsapp'?'#25d366':'transparent'}},
-        c.channel==='whatsapp'?h(WA):h(IG)),
-      c.badge&&h('div',{style:{position:'absolute',top:-4,left:-4,background:c.badgeType==='percent-negative'?'#fee2e2':'#fef9c3',borderRadius:10,padding:'2px 5px',border:'1.5px solid #fff',minWidth:30,textAlign:'center'}},
-        h('span',{style:{fontSize:10,fontWeight:700,color:'#92400e'}},c.badge))),
-    h('div',{style:{flex:1,minWidth:0}},
-      h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:3}},
-        h('span',{style:{fontSize:15,fontWeight:600,color:'#1c1c1e'}},c.name),
-        h('span',{style:{fontSize:12,color:'#8e8e93',flexShrink:0}},c.time)),
-      h('div',{style:{display:'flex',alignItems:'center',gap:3}},
-        c.read&&h('span',{style:{color:'#34c759',fontSize:12,flexShrink:0}},'✓'),
-        h('span',{style:{fontSize:13,color:c.read?'#8e8e93':'#1c1c1e',fontWeight:c.read?400:500,overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis',flex:1}},c.lastMessage),
-        !c.read&&c.badgeType==='count'&&h('span',{style:{background:'#34c759',color:'#fff',fontSize:11,fontWeight:700,borderRadius:10,padding:'1px 6px',flexShrink:0,marginLeft:'auto'}},c.badge))));
+function renderTabs(){
+  var tabs = [{id:'hacer',label:'Hacer'},{id:'whatsapp',label:'WhatsApp'},{id:'instagram',label:'Instagram'}];
+  var out = '<div class="tabs">';
+  tabs.forEach(function(t){
+    var active = state.activeTab === t.id;
+    var dot = t.id==='whatsapp' ? '<span class="dot dot-wa"></span>' : (t.id==='instagram' ? '<span class="dot dot-ig"></span>' : '');
+    out += '<button class="tab'+(active?' active':'')+'" data-tab="'+t.id+'">'+dot+t.label+'</button>';
+  });
+  return out + '</div>';
 }
 
-/* ── CHAT VIEW ────────────────────────────────────── */
-function ChatView({c,onBack}){
-  const [messages,setMessages]=useState(INITIAL_MESSAGES[c.id]||[{id:1,from:'them',text:`Hola desde ${c.name}!`,time:'10:00'}]);
-  const [input,setInput]=useState('');
-  const bottomRef=useRef(null);
-  useEffect(()=>{bottomRef.current?.scrollIntoView({behavior:'smooth'})},[messages]);
-
-  function send(){
-    if(!input.trim())return;
-    const n=new Date();
-    const t=`${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')}`;
-    setMessages(p=>[...p,{id:Date.now(),from:'me',text:input.trim(),time:t}]);
-    setInput('');
-    setTimeout(()=>{
-      const replies=['Entendido, gracias!','Perfecto 👍','Ok, te confirmo en un momento.','Sí claro, sin problema.'];
-      setMessages(p=>[...p,{id:Date.now()+1,from:'them',text:replies[Math.floor(Math.random()*replies.length)],time:t}]);
-    },1200);
-  }
-
-  return h('div',{style:{flex:1,display:'flex',flexDirection:'column',background:'#f2f2f7',overflow:'hidden'}},
-    h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 14px',background:'#fff',borderBottom:'1px solid rgba(0,0,0,0.08)'}},
-      h('button',{style:{display:'flex',alignItems:'center',gap:4},onClick:onBack},
-        h('svg',{width:9,height:16,viewBox:'0 0 9 16',fill:'none'},h('path',{d:'M8 1L1 8l7 7',stroke:'#007aff',strokeWidth:2,strokeLinecap:'round',strokeLinejoin:'round'})),
-        h('span',{style:{fontSize:16,color:'#007aff'}},'Mensajes')),
-      h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',gap:2}},
-        h('div',{style:{width:32,height:32,borderRadius:'50%',background:c.avatarColor,display:'flex',alignItems:'center',justifyContent:'center'}},
-          h('span',{style:{color:'#fff',fontSize:13,fontWeight:700}},c.initials)),
-        h('span',{style:{fontSize:13,fontWeight:600,color:'#1c1c1e'}},c.name),
-        h('span',{style:{fontSize:10,color:'#8e8e93'}},c.channel==='whatsapp'?'📱 WhatsApp':'📷 Instagram')),
-      h('div',{style:{width:36}})),
-    h('div',{style:{flex:1,overflowY:'auto',padding:'16px 14px',display:'flex',flexDirection:'column',gap:8}},
-      messages.map(m=>h('div',{key:m.id,style:{display:'flex',justifyContent:m.from==='me'?'flex-end':'flex-start'}},
-        h('div',{style:{borderRadius:m.from==='me'?'18px 18px 4px 18px':'18px 18px 18px 4px',padding:'10px 14px',maxWidth:'75%',
-          background:m.from==='me'?'#1c1c1e':'#fff',
-          boxShadow:m.from==='me'?'none':'0 1px 3px rgba(0,0,0,0.08)',
-          display:'flex',flexDirection:'column',gap:4}},
-          h('span',{style:{fontSize:15,lineHeight:1.4,color:m.from==='me'?'#fff':'#1c1c1e'}},m.text),
-          h('span',{style:{fontSize:10,color:m.from==='me'?'rgba(255,255,255,0.45)':'#8e8e93',alignSelf:'flex-end'}},m.time)))),
-      h('div',{ref:bottomRef})),
-    h('div',{style:{background:'#fff',borderTop:'1px solid rgba(0,0,0,0.08)',padding:'10px 14px 28px'}},
-      h('div',{style:{display:'flex',alignItems:'center',gap:8,background:'#f2f2f7',borderRadius:22,padding:'6px 6px 6px 14px'}},
-        h('input',{style:{flex:1,border:'none',outline:'none',fontSize:15,color:'#1c1c1e',background:'transparent',fontFamily:'inherit'},
-          placeholder:'Mensaje...',value:input,onChange:e=>setInput(e.target.value),
-          onKeyDown:e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}}}),
-        h('button',{style:{width:34,height:34,borderRadius:'50%',background:input.trim()?'#1c1c1e':'#c7c7cc',border:'none',display:'flex',alignItems:'center',justifyContent:'center',cursor:input.trim()?'pointer':'default',transition:'background .15s',flexShrink:0},
-          onClick:send,disabled:!input.trim()},
-          h('svg',{width:18,height:18,viewBox:'0 0 18 18',fill:'none'},
-            h('path',{d:'M2 9h14M10 3l6 6-6 6',stroke:'#fff',strokeWidth:2,strokeLinecap:'round',strokeLinejoin:'round'}))))));
+function renderSearch(){
+  return '<div class="searchrow">' +
+    '<div class="searchbox">'+svgSearch()+'<input type="text" id="searchInput" placeholder="Buscar" value="'+esc(state.search)+'"/></div>' +
+    '<div class="botbtn">🤖</div></div>';
 }
 
-/* ── BOTTOM NAV ───────────────────────────────────── */
-function BottomNav({active,onChange}){
-  const items=[
-    {id:'mensaje',label:'Mensaje',icon:(a)=>h('svg',{width:24,height:24,viewBox:'0 0 24 24',fill:'none'},h('path',{d:'M12 3C7.03 3 3 6.58 3 11c0 2.16 1 4.1 2.62 5.52L5 21l4.57-2.05C10.33 19.3 11.15 19.4 12 19.4c4.97 0 9-3.58 9-8s-4.03-8-9-8Z',fill:a?'#1c1c1e':'none',stroke:a?'#1c1c1e':'#8e8e93',strokeWidth:1.6,strokeLinejoin:'round'}))},
-    {id:'agentes',label:'Agentes',icon:(a)=>h('svg',{width:24,height:24,viewBox:'0 0 24 24',fill:'none'},h('rect',{x:3,y:6,width:18,height:13,rx:3,fill:a?'#1c1c1e':'none',stroke:a?'#1c1c1e':'#8e8e93',strokeWidth:1.6}),h('circle',{cx:9,cy:12,r:1.5,fill:a?'#fff':'#8e8e93'}),h('circle',{cx:15,cy:12,r:1.5,fill:a?'#fff':'#8e8e93'}),h('path',{d:'M8 4h8',stroke:a?'#1c1c1e':'#8e8e93',strokeWidth:1.6,strokeLinecap:'round'}))},
-    {id:'mascota',label:'',icon:()=>h('div',{style:{width:42,height:42,borderRadius:'50%',background:'linear-gradient(135deg,#a78bfa,#818cf8)',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 8px rgba(139,92,246,0.4)',fontSize:22}},'🐱')},
-    {id:'conocimiento',label:'Conocimiento',icon:(a)=>h('svg',{width:24,height:24,viewBox:'0 0 24 24',fill:'none'},h('path',{d:'M4 19.5A2.5 2.5 0 0 1 6.5 17H20',stroke:a?'#1c1c1e':'#8e8e93',strokeWidth:1.6,strokeLinecap:'round'}),h('path',{d:'M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z',fill:a?'#1c1c1e':'none',stroke:a?'#1c1c1e':'#8e8e93',strokeWidth:1.6}),h('path',{d:'M9 7h7M9 11h5',stroke:a?'#fff':'#8e8e93',strokeWidth:1.4,strokeLinecap:'round'}))},
-    {id:'cuenta',label:'Cuenta',icon:(a)=>h('svg',{width:24,height:24,viewBox:'0 0 24 24',fill:'none'},h('circle',{cx:12,cy:8,r:4,fill:a?'#1c1c1e':'none',stroke:a?'#1c1c1e':'#8e8e93',strokeWidth:1.6}),h('path',{d:'M4 20c0-3.31 3.58-6 8-6s8 2.69 8 6',stroke:a?'#1c1c1e':'#8e8e93',strokeWidth:1.6,strokeLinecap:'round'}))},
-  ];
-  return h('nav',{style:{display:'flex',alignItems:'center',justifyContent:'space-around',background:'#fff',borderTop:'1px solid rgba(0,0,0,0.08)',padding:'8px 0 24px',flexShrink:0}},
-    items.map(it=>h('button',{key:it.id,style:{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'4px 8px',cursor:'pointer',background:'none',border:'none',minWidth:52},
-      onClick:()=>onChange(it.id)},
-      it.icon(active===it.id),
-      it.label&&h('span',{style:{fontSize:10,fontWeight:active===it.id?600:400,color:active===it.id?'#1c1c1e':'#8e8e93'}},it.label))));
+function renderConvItem(c){
+  var channelBadge = c.channel==='whatsapp'
+    ? '<div class="channelbadge" style="background:#25d366">'+svgWA()+'</div>'
+    : '<div class="channelbadge" style="background:transparent">'+svgIG()+'</div>';
+  var percentBadge = c.badge
+    ? '<div class="percentbadge" style="background:'+(c.badgeType==='percent-negative'?'#fee2e2':'#fef9c3')+'"><span>'+c.badge+'</span></div>'
+    : '';
+  var check = c.read ? '<span class="checkmark">✓</span>' : '';
+  var countBadge = (!c.read && c.badgeType==='count') ? '<span class="countbadge">'+c.badge+'</span>' : '';
+  return '<div class="convitem" data-chat="'+c.id+'">' +
+    '<div class="avatarwrap">' +
+      '<div class="avatarcircle" style="background:'+c.avatarColor+'">'+esc(c.initials)+'</div>' +
+      channelBadge + percentBadge +
+    '</div>' +
+    '<div class="convcontent">' +
+      '<div class="convtop"><span class="convname">'+esc(c.name)+'</span><span class="convtime">'+c.time+'</span></div>' +
+      '<div class="convbottom">'+check+'<span class="lastmsg" style="color:'+(c.read?'#8e8e93':'#1c1c1e')+';font-weight:'+(c.read?400:500)+'">'+esc(c.lastMessage)+'</span>'+countBadge+'</div>' +
+    '</div></div>';
 }
 
-/* ── APP ──────────────────────────────────────────── */
-function App(){
-  const [activeTab,setActiveTab]=useState('hacer');
-  const [activeNav,setActiveNav]=useState('mensaje');
-  const [search,setSearch]=useState('');
-  const [chat,setChat]=useState(null);
-
-  const filtered=CONVERSATIONS.filter(c=>{
-    if(search)return c.name.toLowerCase().includes(search.toLowerCase())||c.lastMessage.toLowerCase().includes(search.toLowerCase());
-    if(activeTab==='whatsapp')return c.channel==='whatsapp';
-    if(activeTab==='instagram')return c.channel==='instagram';
+function getFiltered(){
+  return CONVERSATIONS.filter(function(c){
+    if(state.search){
+      var q = state.search.toLowerCase();
+      return c.name.toLowerCase().indexOf(q)>-1 || c.lastMessage.toLowerCase().indexOf(q)>-1;
+    }
+    if(state.activeTab==='whatsapp') return c.channel==='whatsapp';
+    if(state.activeTab==='instagram') return c.channel==='instagram';
     return true;
   });
-
-  const phone={id:'phone',width:390,minHeight:844,background:'#f2f2f7',borderRadius:48,overflow:'hidden',
-    boxShadow:'0 24px 80px rgba(0,0,0,0.35),inset 0 0 0 1px rgba(255,255,255,0.15)',
-    display:'flex',flexDirection:'column',position:'relative'};
-
-  if(chat) return h('div',{style:phone},h(StatusBar),h(ChatView,{c:chat,onBack:()=>setChat(null)}));
-
-  return h('div',{style:phone},
-    h(StatusBar),
-    h(BrowserBar),
-    h('div',{style:{flex:1,overflowY:'auto',paddingBottom:8}},
-      h('h1',{style:{textAlign:'center',fontSize:17,fontWeight:600,color:'#1c1c1e',padding:'14px 0 10px',background:'#f2f2f7'}},'Mensaje'),
-      h(FilterTabs,{active:activeTab,onChange:setActiveTab}),
-      h(SearchBar,{value:search,onChange:setSearch}),
-      filtered.length===0
-        ? h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'60px 0'}},
-            h('span',{style:{fontSize:32}},'💬'),
-            h('p',{style:{marginTop:8,color:'#8e8e93',fontSize:14}},'Sin conversaciones'))
-        : h('div',{style:{display:'flex',flexDirection:'column',gap:1,padding:'0 12px'}},
-            filtered.map(c=>h(ConvItem,{key:c.id,c,onSelect:setChat})))),
-    h(BottomNav,{active:activeNav,onChange:setActiveNav}));
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(h(React.StrictMode,null,h(App)));
+function renderConvList(){
+  var filtered = getFiltered();
+  if(filtered.length===0){
+    return '<div class="emptystate"><span>💬</span><p>Sin conversaciones</p></div>';
+  }
+  return '<div class="convlist">' + filtered.map(renderConvItem).join('') + '</div>';
+}
+
+function renderBottomNav(){
+  var items = [
+    {id:'mensaje',label:'Mensaje'},
+    {id:'agentes',label:'Agentes'},
+    {id:'mascota',label:''},
+    {id:'conocimiento',label:'Conocimiento'},
+    {id:'cuenta',label:'Cuenta'}
+  ];
+  var out = '<nav class="bottomnav">';
+  items.forEach(function(it){
+    var active = state.activeNav === it.id;
+    var icon = it.id==='mascota' ? '<div class="mascota-circle">🐱</div>' : navIcon(it.id, active);
+    var label = it.label ? '<span class="navlabel'+(active?' active':'')+'">'+it.label+'</span>' : '';
+    out += '<div class="navitem" data-nav="'+it.id+'">'+icon+label+'</div>';
+  });
+  return out + '</nav>';
+}
+
+function navIcon(id, active){
+  var stroke = active ? '#1c1c1e' : '#8e8e93';
+  var fill = active ? '#1c1c1e' : 'none';
+  var innerFill = active ? '#fff' : '#8e8e93';
+  if(id==='mensaje'){
+    return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 3C7.03 3 3 6.58 3 11c0 2.16 1 4.1 2.62 5.52L5 21l4.57-2.05C10.33 19.3 11.15 19.4 12 19.4c4.97 0 9-3.58 9-8s-4.03-8-9-8Z" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+  }
+  if(id==='agentes'){
+    return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="13" rx="3" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1.6"/><circle cx="9" cy="12" r="1.5" fill="'+innerFill+'"/><circle cx="15" cy="12" r="1.5" fill="'+innerFill+'"/><path d="M8 4h8" stroke="'+stroke+'" stroke-width="1.6" stroke-linecap="round"/></svg>';
+  }
+  if(id==='conocimiento'){
+    return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="'+stroke+'" stroke-width="1.6" stroke-linecap="round"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1.6"/><path d="M9 7h7M9 11h5" stroke="'+innerFill+'" stroke-width="1.4" stroke-linecap="round"/></svg>';
+  }
+  if(id==='cuenta'){
+    return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1.6"/><path d="M4 20c0-3.31 3.58-6 8-6s8 2.69 8 6" stroke="'+stroke+'" stroke-width="1.6" stroke-linecap="round"/></svg>';
+  }
+  return '';
+}
+
+function renderChatView(c){
+  var messages = state.messages[c.id] || INITIAL_MESSAGES[c.id] || [{id:1,from:'them',text:'Hola desde '+c.name+'!',time:'10:00'}];
+  state.messages[c.id] = messages;
+  var bubbles = messages.map(function(m){
+    return '<div class="bubblerow '+m.from+'"><div class="bubble '+m.from+'">' +
+      '<span class="bubbletext">'+esc(m.text)+'</span>' +
+      '<span class="bubbletime">'+m.time+'</span></div></div>';
+  }).join('');
+  return '<div class="chatview">' +
+    '<div class="chatheader">' +
+      '<button class="backbtn" id="chatBackBtn">'+svgBack()+'<span>Mensajes</span></button>' +
+      '<div class="chatcontact">' +
+        '<div class="avatarsmall" style="background:'+c.avatarColor+'">'+esc(c.initials)+'</div>' +
+        '<span class="chatname">'+esc(c.name)+'</span>' +
+        '<span class="chatsub">'+(c.channel==='whatsapp'?'📱 WhatsApp':'📷 Instagram')+'</span>' +
+      '</div>' +
+      '<div style="width:36px"></div>' +
+    '</div>' +
+    '<div class="messagearea" id="messageArea">'+bubbles+'<div id="scrollAnchor"></div></div>' +
+    '<div class="inputarea">' +
+      '<div class="inputrow">' +
+        '<input id="chatInput" placeholder="Mensaje..." value=""/>' +
+        '<button class="sendbtn" id="sendBtn">'+svgSend()+'</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+/* ── MAIN RENDER ──────────────────────────────────── */
+function render(){
+  var root = document.getElementById('root');
+  var html;
+  if(state.chat){
+    html = '<div id="phone">' + renderStatusBar() + renderChatView(state.chat) + '</div>';
+  } else {
+    html = '<div id="phone">' +
+      renderStatusBar() +
+      renderBrowserBar() +
+      '<div class="scrollarea">' +
+        '<h1 class="heading">Mensaje</h1>' +
+        renderTabs() +
+        renderSearch() +
+        renderConvList() +
+      '</div>' +
+      renderBottomNav() +
+    '</div>';
+  }
+  root.innerHTML = html;
+  attachEvents();
+}
+
+/* ── EVENTS ───────────────────────────────────────── */
+function attachEvents(){
+  if(state.chat){
+    var backBtn = document.getElementById('chatBackBtn');
+    if(backBtn) backBtn.addEventListener('click', function(){ state.chat = null; render(); });
+
+    var input = document.getElementById('chatInput');
+    var sendBtn = document.getElementById('sendBtn');
+    function doSend(){
+      if(!input.value.trim()) return;
+      var n = new Date();
+      var t = n.getHours() + ':' + String(n.getMinutes()).padStart(2,'0');
+      var msgs = state.messages[state.chat.id];
+      msgs.push({id:Date.now(), from:'me', text:input.value.trim(), time:t});
+      input.value = '';
+      render();
+      var anchor = document.getElementById('scrollAnchor');
+      if(anchor) anchor.scrollIntoView({behavior:'smooth'});
+      setTimeout(function(){
+        var replies = ['Entendido, gracias!','Perfecto 👍','Ok, te confirmo en un momento.','Sí claro, sin problema.'];
+        msgs.push({id:Date.now()+1, from:'them', text:replies[Math.floor(Math.random()*replies.length)], time:t});
+        if(state.chat) render();
+      }, 1200);
+    }
+    if(sendBtn) sendBtn.addEventListener('click', doSend);
+    if(input){
+      input.addEventListener('keydown', function(e){
+        if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); doSend(); }
+      });
+      var sb = document.querySelector('.sendbtn');
+      function refreshSendBtn(){
+        if(input.value.trim()) sb.classList.add('enabled'); else sb.classList.remove('enabled');
+      }
+      input.addEventListener('input', refreshSendBtn);
+      refreshSendBtn();
+    }
+    var anchor = document.getElementById('scrollAnchor');
+    if(anchor) anchor.scrollIntoView();
+    return;
+  }
+
+  var tabBtns = document.querySelectorAll('.tab');
+  tabBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      state.activeTab = btn.getAttribute('data-tab');
+      render();
+    });
+  });
+
+  var searchInput = document.getElementById('searchInput');
+  if(searchInput){
+    searchInput.addEventListener('input', function(){
+      state.search = searchInput.value;
+      render();
+      var el = document.getElementById('searchInput');
+      if(el){ el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+    });
+  }
+
+  var convItems = document.querySelectorAll('.convitem');
+  convItems.forEach(function(el){
+    el.addEventListener('click', function(){
+      var id = parseInt(el.getAttribute('data-chat'), 10);
+      var c = CONVERSATIONS.filter(function(x){ return x.id===id; })[0];
+      state.chat = c;
+      render();
+    });
+  });
+
+  var navItems = document.querySelectorAll('.navitem');
+  navItems.forEach(function(el){
+    el.addEventListener('click', function(){
+      state.activeNav = el.getAttribute('data-nav');
+      render();
+    });
+  });
+}
+
+render();
+setInterval(function(){ if(!state.chat){ var sb = document.querySelector('.statusbar .time'); if(sb){ var n=new Date(); sb.textContent = n.getHours()+':'+String(n.getMinutes()).padStart(2,'0'); } } }, 10000);
 </script>
 </body>
 </html>
