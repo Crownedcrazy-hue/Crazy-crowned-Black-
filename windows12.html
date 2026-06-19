@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Windows 12 — Concept</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#e5e7eb;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-font-smoothing:antialiased}
+  #root{min-height:100%;display:flex;justify-content:center;align-items:flex-start;background:#e5e7eb;padding:20px 0}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;padding:0}
+  ::-webkit-scrollbar{width:0}
+  input:focus{outline:none}
+  @media(max-width:440px){#root{padding:0}#phone{border-radius:0!important;min-height:100vh!important;width:100%!important}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script>
+'use strict';
+const {useState,useRef,useEffect} = React;
+const h = React.createElement;
+
+/* ── DATA ─────────────────────────────────────────── */
+const PINNED = [
+  {id:'edge',name:'Edge',icon:'🌐',color:'#0078d4'},
+  {id:'mail',name:'Correo',icon:'✉️',color:'#0a84ff'},
+  {id:'photos',name:'Fotos',icon:'🖼️',color:'#7c3aed'},
+  {id:'settings',name:'Configuración',icon:'⚙️',color:'#5b5b66'},
+  {id:'store',name:'Store',icon:'🛍️',color:'#2563eb'},
+  {id:'files',name:'Archivos',icon:'📁',color:'#f59e0b'},
+  {id:'calc',name:'Calculadora',icon:'🧮',color:'#10b981'},
+  {id:'camera',name:'Cámara',icon:'📷',color:'#ec4899'},
+];
+
+const TASKBAR_APPS = ['🌐','✉️','📁','🖼️','🛍️'];
+
+const RECENT = [
+  {id:1,name:'Presentación Q3.pptx',meta:'Hace 12 min · PowerPoint',icon:'📊',color:'#d24726'},
+  {id:2,name:'Presupuesto 2026.xlsx',meta:'Hace 1 h · Excel',icon:'📈',color:'#107c41'},
+  {id:3,name:'Notas reunión.docx',meta:'Ayer · Word',icon:'📝',color:'#185abd'},
+  {id:4,name:'wallpaper_azul.png',meta:'Ayer · Fotos',icon:'🏞️',color:'#7c3aed'},
+];
+
+const NEWS = [
+  {id:1,title:'Windows 12 reinventa el escritorio con IA',source:'TechToday',tag:'Tecnología'},
+  {id:2,title:'La bolsa cierra al alza por tercer día',source:'Mercados',tag:'Economía'},
+  {id:3,title:'Nuevo récord en eficiencia de paneles solares',source:'Ciencia Hoy',tag:'Ciencia'},
+];
+
+/* ── STATUS BAR ───────────────────────────────────── */
+function StatusBar({dark}){
+  const [time,setTime]=useState(()=>{const n=new Date();return`${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')}`});
+  useEffect(()=>{const t=setInterval(()=>{const n=new Date();setTime(`${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')}`)},10000);return()=>clearInterval(t)},[]);
+  const fg=dark?'#ffffff':'#1c1c1e';
+  return h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'14px 28px 6px',background:'transparent',position:'relative',zIndex:30}},
+    h('span',{style:{fontSize:15,fontWeight:600,color:fg,letterSpacing:'-0.3px'}},time),
+    h('div',{style:{width:126,height:34,background:'#000',borderRadius:20,position:'absolute',left:'50%',top:8,transform:'translateX(-50%)'}}),
+    h('div',{style:{display:'flex',alignItems:'center',gap:6}},
+      h('svg',{width:17,height:12,viewBox:'0 0 17 12',fill:'none'},
+        h('rect',{x:0,y:6,width:3,height:6,rx:0.5,fill:fg}),
+        h('rect',{x:4.5,y:4,width:3,height:8,rx:0.5,fill:fg}),
+        h('rect',{x:9,y:2,width:3,height:10,rx:0.5,fill:fg}),
+        h('rect',{x:13.5,y:0,width:3,height:12,rx:0.5,fill:fg})),
+      h('svg',{width:16,height:12,viewBox:'0 0 16 12',fill:'none'},
+        h('path',{d:'M8 9.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z',fill:fg}),
+        h('path',{d:'M3.5 6.5A6.5 6.5 0 0 1 8 4.8a6.5 6.5 0 0 1 4.5 1.7',stroke:fg,strokeWidth:1.3,strokeLinecap:'round',fill:'none'}),
+        h('path',{d:'M1 4A9.9 9.9 0 0 1 8 1.3 9.9 9.9 0 0 1 15 4',stroke:fg,strokeWidth:1.3,strokeLinecap:'round',fill:'none'})),
+      h('svg',{width:25,height:12,viewBox:'0 0 25 12',fill:'none'},
+        h('rect',{x:0.5,y:0.5,width:21,height:11,rx:3.5,stroke:fg,strokeOpacity:0.35}),
+        h('rect',{x:2,y:2,width:16,height:8,rx:2,fill:fg}),
+        h('path',{d:'M23 4v4a2 2 0 0 0 0-4Z',fill:fg,fillOpacity:0.4}))));
+}
+
+/* ── WALLPAPER ────────────────────────────────────── */
+const WALLPAPER='radial-gradient(120% 80% at 20% 0%,#4f46e5 0%,rgba(79,70,229,0) 55%),radial-gradient(120% 90% at 90% 20%,#7c3aed 0%,rgba(124,58,237,0) 50%),linear-gradient(160deg,#0b1d51 0%,#1e3a8a 40%,#3730a3 75%,#1e1b4b 100%)';
+
+function clockParts(){
+  const n=new Date();
+  const time=`${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')}`;
+  const dias=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const date=`${dias[n.getDay()]}, ${n.getDate()} de ${meses[n.getMonth()]}`;
+  return {time,date:date.charAt(0).toUpperCase()+date.slice(1)};
+}
+
+/* ── LOCK SCREEN ──────────────────────────────────── */
+function LockScreen({onUnlock}){
+  const [c,setC]=useState(clockParts());
+  useEffect(()=>{const t=setInterval(()=>setC(clockParts()),10000);return()=>clearInterval(t)},[]);
+  return h('div',{style:{flex:1,display:'flex',flexDirection:'column',background:WALLPAPER,position:'relative'}},
+    h(StatusBar,{dark:true}),
+    h('div',{style:{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:4,paddingBottom:120}},
+      h('div',{style:{fontSize:88,fontWeight:600,color:'#fff',letterSpacing:'-3px',lineHeight:1,textShadow:'0 4px 24px rgba(0,0,0,0.35)'}},c.time),
+      h('div',{style:{fontSize:18,fontWeight:500,color:'rgba(255,255,255,0.92)',marginTop:6,textShadow:'0 2px 12px rgba(0,0,0,0.3)'}},c.date)),
+    h('button',{onClick:onUnlock,
+      style:{position:'absolute',left:0,right:0,bottom:0,padding:'0 0 46px',display:'flex',flexDirection:'column',alignItems:'center',gap:14,background:'none'}},
+      h('div',{style:{width:46,height:46,borderRadius:'50%',background:'rgba(255,255,255,0.18)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',display:'flex',alignItems:'center',justifyContent:'center',border:'1px solid rgba(255,255,255,0.25)'}},
+        h('span',{style:{fontSize:22}},'🔒')),
+      h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',gap:2}},
+        h('span',{style:{fontSize:14,fontWeight:500,color:'rgba(255,255,255,0.9)'}},'Desliza para desbloquear'),
+        h('span',{style:{fontSize:22,color:'rgba(255,255,255,0.6)',lineHeight:0.6}},'⌃'))));
+}
+
+/* ── PINNED APP TILE ──────────────────────────────── */
+function AppTile({app,onOpen}){
+  const [p,setP]=useState(false);
+  return h('button',{
+    onClick:()=>onOpen&&onOpen(app),onMouseDown:()=>setP(true),onMouseUp:()=>setP(false),onMouseLeave:()=>setP(false),
+    style:{display:'flex',flexDirection:'column',alignItems:'center',gap:7,padding:'8px 4px',borderRadius:14,background:p?'rgba(255,255,255,0.14)':'transparent',transition:'background .1s'}},
+    h('div',{style:{width:48,height:48,borderRadius:13,background:`linear-gradient(145deg,${app.color},rgba(0,0,0,0.15))`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,boxShadow:'0 4px 12px rgba(0,0,0,0.25)'}},app.icon),
+    h('span',{style:{fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.92)',textAlign:'center',maxWidth:62,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},app.name));
+}
+
+/* ── DESKTOP / START ──────────────────────────────── */
+function Desktop({onOpenWidgets,onOpen}){
+  const [search,setSearch]=useState('');
+  const card={background:'rgba(255,255,255,0.1)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:16,border:'1px solid rgba(255,255,255,0.16)',boxShadow:'0 8px 24px rgba(0,0,0,0.2)'};
+  return h('div',{style:{flex:1,display:'flex',flexDirection:'column',background:WALLPAPER,overflow:'hidden'}},
+    h(StatusBar,{dark:true}),
+    h('div',{style:{flex:1,overflowY:'auto',padding:'10px 18px 100px'}},
+      /* search */
+      h('div',{style:{display:'flex',alignItems:'center',gap:9,...card,borderRadius:24,padding:'11px 18px',margin:'8px 6px 22px'}},
+        h('svg',{width:16,height:16,viewBox:'0 0 15 15',fill:'none',style:{flexShrink:0}},
+          h('circle',{cx:6.5,cy:6.5,r:5,stroke:'rgba(255,255,255,0.7)',strokeWidth:1.5}),
+          h('path',{d:'M10 10l3.5 3.5',stroke:'rgba(255,255,255,0.7)',strokeWidth:1.5,strokeLinecap:'round'})),
+        h('input',{value:search,onChange:e=>setSearch(e.target.value),placeholder:'Buscar aplicaciones, archivos y más',
+          style:{flex:1,border:'none',outline:'none',fontSize:14,color:'#fff',background:'transparent',fontFamily:'inherit'}})),
+      /* pinned */
+      h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'0 6px 10px'}},
+        h('span',{style:{fontSize:14,fontWeight:600,color:'#fff'}},'Fijado'),
+        h('span',{style:{fontSize:12,color:'rgba(255,255,255,0.7)'}},'Todas las apps ›')),
+      h('div',{style:{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:6,marginBottom:24}},
+        PINNED.map(a=>h(AppTile,{key:a.id,app:a,onOpen}))),
+      /* recommended */
+      h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'0 6px 10px'}},
+        h('span',{style:{fontSize:14,fontWeight:600,color:'#fff'}},'Recomendado'),
+        h('span',{style:{fontSize:12,color:'rgba(255,255,255,0.7)'}},'Más ›')),
+      h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}},
+        RECENT.map(r=>h('div',{key:r.id,style:{display:'flex',alignItems:'center',gap:10,...card,padding:'12px 12px'}},
+          h('div',{style:{width:34,height:34,borderRadius:9,background:r.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:17,flexShrink:0}},r.icon),
+          h('div',{style:{minWidth:0}},
+            h('div',{style:{fontSize:12,fontWeight:600,color:'#fff',overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis'}},r.name),
+            h('div',{style:{fontSize:10,color:'rgba(255,255,255,0.65)',overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis'}},r.meta)))))),
+    h(Taskbar,{onOpenWidgets,onOpen}));
+}
+
+/* ── TASKBAR ──────────────────────────────────────── */
+function Taskbar({onOpenWidgets,onOpen}){
+  const [c,setC]=useState(clockParts());
+  useEffect(()=>{const t=setInterval(()=>setC(clockParts()),10000);return()=>clearInterval(t)},[]);
+  const n=new Date();
+  const fecha=`${n.getDate()}/${n.getMonth()+1}/${n.getFullYear()}`;
+  return h('div',{style:{position:'absolute',left:10,right:10,bottom:14,height:60,borderRadius:18,
+      background:'rgba(30,32,60,0.55)',backdropFilter:'blur(28px) saturate(160%)',WebkitBackdropFilter:'blur(28px) saturate(160%)',
+      border:'1px solid rgba(255,255,255,0.16)',boxShadow:'0 8px 30px rgba(0,0,0,0.4)',
+      display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 14px',zIndex:20}},
+    /* widgets button (left) */
+    h('button',{onClick:onOpenWidgets,style:{width:38,height:38,borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,background:'rgba(255,255,255,0.06)'}},'🌤️'),
+    /* center: start + apps */
+    h('div',{style:{display:'flex',alignItems:'center',gap:8}},
+      h('button',{style:{width:40,height:40,borderRadius:11,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(255,255,255,0.12)'}},
+        h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:3,transform:'rotate(0deg)'}},
+          [0,1,2,3].map(i=>h('span',{key:i,style:{width:8,height:8,borderRadius:2,background:'#4cc2ff'}})))),
+      TASKBAR_APPS.map((ic,i)=>h('button',{key:i,style:{width:38,height:38,borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,background:'rgba(255,255,255,0.04)'}},ic))),
+    /* system tray (right) */
+    h('div',{style:{display:'flex',alignItems:'center',gap:8}},
+      h('div',{style:{display:'flex',alignItems:'center',gap:6}},
+        h('span',{style:{fontSize:13},title:'WiFi'},'📶'),
+        h('span',{style:{fontSize:13},title:'Batería'},'🔋')),
+      h('div',{style:{display:'flex',flexDirection:'column',alignItems:'flex-end',lineHeight:1.15}},
+        h('span',{style:{fontSize:12,fontWeight:600,color:'#fff'}},c.time),
+        h('span',{style:{fontSize:9,color:'rgba(255,255,255,0.7)'}},fecha))));
+}
+
+/* ── WIDGETS PANEL ────────────────────────────────── */
+function Widgets({onClose}){
+  const card={background:'rgba(255,255,255,0.08)',backdropFilter:'blur(22px)',WebkitBackdropFilter:'blur(22px)',borderRadius:16,border:'1px solid rgba(255,255,255,0.14)',boxShadow:'0 8px 26px rgba(0,0,0,0.28)',padding:16};
+  const c=clockParts();
+  const dias=['D','L','M','M','J','V','S'];
+  const today=new Date().getDate();
+  return h('div',{style:{flex:1,display:'flex',flexDirection:'column',background:WALLPAPER,overflow:'hidden'}},
+    h(StatusBar,{dark:true}),
+    h('div',{style:{display:'flex',alignItems:'center',gap:10,padding:'8px 18px 12px'}},
+      h('button',{onClick:onClose,style:{width:34,height:34,borderRadius:10,background:'rgba(255,255,255,0.12)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,color:'#fff'}},'‹'),
+      h('h1',{style:{fontSize:18,fontWeight:600,color:'#fff'}},'Widgets')),
+    h('div',{style:{flex:1,overflowY:'auto',padding:'4px 18px 28px',display:'flex',flexDirection:'column',gap:14}},
+      /* weather */
+      h('div',{style:{...card,background:'linear-gradient(135deg,rgba(56,132,255,0.55),rgba(124,58,237,0.4))'}},
+        h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}},
+          h('div',null,
+            h('div',{style:{fontSize:13,color:'rgba(255,255,255,0.85)',fontWeight:500}},'Buenos Aires'),
+            h('div',{style:{fontSize:44,fontWeight:600,color:'#fff',lineHeight:1.1}},'21°'),
+            h('div',{style:{fontSize:12,color:'rgba(255,255,255,0.8)'}},'Parcialmente nublado')),
+          h('div',{style:{fontSize:46}},'⛅')),
+        h('div',{style:{display:'flex',justifyContent:'space-between',marginTop:14}},
+          [['Jue','18°','🌧️'],['Vie','23°','☀️'],['Sáb','20°','⛅'],['Dom','17°','🌦️']].map((d,i)=>
+            h('div',{key:i,style:{display:'flex',flexDirection:'column',alignItems:'center',gap:3}},
+              h('span',{style:{fontSize:11,color:'rgba(255,255,255,0.8)'}},d[0]),
+              h('span',{style:{fontSize:17}},d[2]),
+              h('span',{style:{fontSize:12,fontWeight:600,color:'#fff'}},d[1]))))),
+      /* calendar */
+      h('div',{style:card},
+        h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}},
+          h('span',{style:{fontSize:14,fontWeight:600,color:'#fff'}},'📅 '+c.date),
+          h('span',{style:{fontSize:11,color:'rgba(255,255,255,0.6)'}},'Junio 2026')),
+        h('div',{style:{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:4}},
+          dias.map((d,i)=>h('span',{key:'h'+i,style:{fontSize:10,textAlign:'center',color:'rgba(255,255,255,0.5)',fontWeight:600}},d)),
+          Array.from({length:30},(_,i)=>i+1).map(day=>
+            h('span',{key:day,style:{fontSize:11,textAlign:'center',padding:'4px 0',borderRadius:7,fontWeight:day===today?700:400,
+              color:day===today?'#0b1d51':'rgba(255,255,255,0.85)',background:day===today?'#fff':'transparent'}},day)))),
+      /* news */
+      h('div',{style:card},
+        h('div',{style:{fontSize:14,fontWeight:600,color:'#fff',marginBottom:12}},'📰 Noticias'),
+        h('div',{style:{display:'flex',flexDirection:'column',gap:10}},
+          NEWS.map(n=>h('div',{key:n.id,style:{display:'flex',gap:10,paddingBottom:10,borderBottom:'1px solid rgba(255,255,255,0.08)'}},
+            h('div',{style:{width:44,height:44,borderRadius:9,background:'linear-gradient(135deg,#4f46e5,#7c3aed)',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20}},'🗞️'),
+            h('div',{style:{minWidth:0}},
+              h('div',{style:{fontSize:12,fontWeight:600,color:'#fff',lineHeight:1.3}},n.title),
+              h('div',{style:{fontSize:10,color:'rgba(255,255,255,0.6)',marginTop:3}},`${n.source} · ${n.tag}`))))))));
+}
+
+/* ── APP WINDOW (opened app) ──────────────────────── */
+function AppWindow({app,onClose}){
+  return h('div',{style:{flex:1,display:'flex',flexDirection:'column',background:WALLPAPER,overflow:'hidden'}},
+    h(StatusBar,{dark:true}),
+    h('div',{style:{flex:1,margin:'8px 12px 80px',borderRadius:18,background:'rgba(245,246,255,0.97)',display:'flex',flexDirection:'column',overflow:'hidden',boxShadow:'0 10px 40px rgba(0,0,0,0.35)'}},
+      h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 14px',background:'rgba(255,255,255,0.7)',borderBottom:'1px solid rgba(0,0,0,0.07)'}},
+        h('div',{style:{display:'flex',alignItems:'center',gap:8}},
+          h('div',{style:{width:24,height:24,borderRadius:7,background:app.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:14}},app.icon),
+          h('span',{style:{fontSize:14,fontWeight:600,color:'#1c1c1e'}},app.name)),
+        h('div',{style:{display:'flex',gap:8}},
+          h('span',{style:{width:13,height:2,background:'#888',alignSelf:'center'}}),
+          h('span',{style:{width:11,height:11,border:'1.5px solid #888',borderRadius:2}}),
+          h('button',{onClick:onClose,style:{fontSize:15,color:'#888',lineHeight:1}},'✕'))),
+      h('div',{style:{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:10,padding:30,textAlign:'center'}},
+        h('div',{style:{fontSize:52}},app.icon),
+        h('div',{style:{fontSize:17,fontWeight:600,color:'#1c1c1e'}},app.name),
+        h('div',{style:{fontSize:13,color:'#6b7280'}},'Esta es una vista conceptual de la app en Windows 12.'),
+        h('button',{onClick:onClose,style:{marginTop:8,padding:'8px 20px',borderRadius:18,background:'#0078d4',color:'#fff',fontSize:13,fontWeight:600}},'Volver al escritorio'))));
+}
+
+/* ── APP ──────────────────────────────────────────── */
+function App(){
+  const [screen,setScreen]=useState('lock'); // lock | desktop | widgets
+  const [openApp,setOpenApp]=useState(null);
+
+  const phone={id:'phone',width:390,minHeight:844,background:'#0b1d51',borderRadius:48,overflow:'hidden',
+    boxShadow:'0 24px 80px rgba(0,0,0,0.45),inset 0 0 0 1px rgba(255,255,255,0.15)',
+    display:'flex',flexDirection:'column',position:'relative'};
+
+  let body;
+  if(screen==='lock') body=h(LockScreen,{onUnlock:()=>setScreen('desktop')});
+  else if(openApp) body=h(AppWindow,{app:openApp,onClose:()=>setOpenApp(null)});
+  else if(screen==='widgets') body=h(Widgets,{onClose:()=>setScreen('desktop')});
+  else body=h(Desktop,{onOpenWidgets:()=>setScreen('widgets'),onOpen:setOpenApp});
+
+  return h('div',{style:phone},body);
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(h(React.StrictMode,null,h(App)));
+</script>
+</body>
+</html>
