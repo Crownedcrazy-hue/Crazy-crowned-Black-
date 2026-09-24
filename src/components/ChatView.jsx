@@ -2,12 +2,12 @@ import { useState } from 'react'
 
 const INITIAL_MESSAGES = {
   1: [
-    { id: 1, from: 'them', text: 'Hola! Necesito un cajero con experiencia para este fin de semana 🔥', time: '16:30' },
-    { id: 2, from: 'me', text: 'Entendido, cajero con experiencia. ¿Para cuántas personas?', time: '16:37' },
+    { id: 1, from: 'them', text: '¡Hola! Quiero encargar medialunas para el sábado 🥐', time: '16:30' },
+    { id: 2, from: 'me', text: 'Perfecto, 2 docenas de medialunas. ¿A qué hora las retirás?', time: '16:37' },
   ],
   2: [
-    { id: 1, from: 'them', text: 'Recientemente vuelto al negocio, ¿tienen disponibilidad?', time: '16:20' },
-    { id: 2, from: 'me', text: 'Claro que sí, con gusto te ayudamos.', time: '16:24' },
+    { id: 1, from: 'them', text: 'Hola, ¿tienen turnos disponibles esta semana?', time: '16:20' },
+    { id: 2, from: 'me', text: 'Claro, te paso los horarios.', time: '16:24' },
   ],
   default: [
     { id: 1, from: 'them', text: 'Hola, ¿cómo están?', time: '10:00' },
