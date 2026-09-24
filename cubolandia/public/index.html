@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cubolandia">
+<meta name="theme-color" content="#1a1d17">
+<meta name="description" content="Juego de bloques multijugador: construí con tus amigos y hablen por voz.">
+<title>Cubolandia</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#f3efe0; --ink-dim:#c9c3ad; --panel:#23261f; --panel-2:#30352b; --edge:#0f110d;
+    --gold:#f2c14e; --grass:#5d9b3a; --grass-dark:#3e6e25; --danger:#c8553d; --online:#46c46a;
+    --display:'Pixelify Sans', 'Courier New', monospace;
+    --body:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  html,body{height:100%;margin:0;overflow:hidden;background:#1a1d17;color:var(--ink);font-family:var(--body);
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none;overscroll-behavior:none}
+  canvas#game{position:fixed;inset:0;width:100%;height:100%;display:block}
+  #touch{position:fixed;inset:0;touch-action:none}
+  #underwater{position:fixed;inset:0;background:rgba(30,80,170,.35);pointer-events:none}
+  #cross{position:fixed;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;pointer-events:none;mix-blend-mode:difference}
+  #cross::before,#cross::after{content:"";position:absolute;background:#fff}
+  #cross::before{left:10px;top:0;width:2px;height:22px}
+  #cross::after{top:10px;left:0;height:2px;width:22px}
+
+  .btn{font-family:var(--display);font-weight:700;color:var(--ink);background:var(--panel-2);
+    border:3px solid var(--edge);box-shadow:inset -3px -3px 0 rgba(0,0,0,.35), inset 3px 3px 0 rgba(255,255,255,.12);
+    padding:10px 16px;font-size:18px;cursor:pointer;touch-action:manipulation;letter-spacing:.02em}
+  .btn:active{box-shadow:inset 3px 3px 0 rgba(0,0,0,.35)}
+  .btn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+  .btn:disabled{opacity:.6}
+  .btn.primary{background:var(--grass);color:#10200a;font-size:24px;padding:14px 26px}
+  .btn.danger{background:var(--danger)}
+  .btn.on{background:var(--gold);color:#241b00}
+
+  /* HUD */
+  .hud{position:fixed;z-index:5}
+  #topLeft{top:calc(env(safe-area-inset-top,0px) + 10px);left:calc(env(safe-area-inset-left,0px) + 12px);display:flex;flex-wrap:wrap;gap:8px;max-width:70vw}
+  #topLeft .btn{padding:8px 12px;font-size:16px;background:rgba(35,38,31,.78)}
+  #topLeft .btn.on{background:var(--gold)}
+  #rightCtl{right:calc(env(safe-area-inset-right,0px) + 14px);bottom:calc(env(safe-area-inset-bottom,0px) + 84px);
+    display:flex;flex-direction:column;align-items:center;gap:10px}
+  .round{width:74px;height:74px;padding:0;font-size:28px;display:grid;place-items:center;background:rgba(35,38,31,.72);touch-action:none}
+  #modeBtn{width:64px;height:64px;font-size:26px}
+  #modeBtn .lbl{display:block;font-size:10px;margin-top:-2px}
+  #downBtn{width:58px;height:58px;font-size:22px}
+  #hotbar{left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 10px);
+    display:flex;background:rgba(15,17,13,.72);border:3px solid var(--edge);padding:3px;gap:3px}
+  .slot{width:36px;height:36px;padding:3px;border:2px solid transparent;background:rgba(255,255,255,.06);touch-action:none;cursor:pointer}
+  .slot canvas{width:100%;height:100%;image-rendering:pixelated;display:block}
+  .slot.sel{border-color:var(--gold);background:rgba(242,193,78,.18)}
+  #blockName{left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 66px);
+    font-family:var(--display);font-size:18px;text-shadow:2px 2px 0 #000;pointer-events:none;transition:opacity .4s}
+  #joy{position:fixed;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;
+    border:3px solid rgba(255,255,255,.35);background:rgba(0,0,0,.15);pointer-events:none;z-index:4}
+  #joyKnob{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:rgba(255,255,255,.45)}
+  #topRight{top:calc(env(safe-area-inset-top,0px) + 14px);right:calc(env(safe-area-inset-right,0px) + 14px);
+    font-family:var(--display);font-size:16px;text-shadow:2px 2px 0 #000;pointer-events:none;text-align:right;display:flex;flex-direction:column;gap:4px}
+  #netBadge{color:var(--online)}
+  #netBadge.off{color:var(--ink-dim)}
+
+  /* Chat */
+  #chatLog{left:calc(env(safe-area-inset-left,0px) + 12px);top:calc(env(safe-area-inset-top,0px) + 62px);
+    width:min(360px,60vw);display:flex;flex-direction:column;gap:4px;pointer-events:none}
+  .msg{background:rgba(15,17,13,.62);padding:5px 8px;font-size:14px;line-height:1.35;word-wrap:break-word;transition:opacity 1s}
+  .msg b{font-weight:700}
+  .msg.sys{color:var(--ink-dim);font-style:italic}
+  #chatBar{left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 10px);width:min(520px,calc(100vw - 32px));
+    display:flex;gap:6px;z-index:8}
+  #chatInput{flex:1;min-width:0;font-size:16px;padding:10px;border:3px solid var(--edge);background:#f3efe0;color:#1a1d17;font-family:var(--body);-webkit-user-select:text;user-select:text}
+  #toast{left:50%;top:40%;transform:translate(-50%,-50%);background:rgba(15,17,13,.85);border:3px solid var(--edge);padding:12px 16px;
+    max-width:min(420px,calc(100vw - 32px));font-size:15px;line-height:1.4;text-align:center;pointer-events:none;z-index:9}
+
+  /* Menu */
+  #menu{position:fixed;inset:0;z-index:10;overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch;
+    background:linear-gradient(rgba(12,16,10,.55),rgba(12,16,10,.82));padding-inline:16px;
+    padding-block:calc(env(safe-area-inset-top,0px) + 24px) calc(env(safe-area-inset-bottom,0px) + 24px)}
+  #menu .wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(44px,12vw,72px);line-height:1;margin:6px 0 0;
+    color:var(--ink);text-shadow:4px 4px 0 var(--grass-dark), 8px 8px 0 var(--edge);text-wrap:balance;letter-spacing:.01em}
+  .tag{font-family:var(--display);font-size:18px;color:var(--gold);margin:0}
+  .card{background:var(--panel);border:3px solid var(--edge);box-shadow:inset 0 4px 0 var(--grass), inset 0 7px 0 var(--grass-dark);
+    padding:18px 16px 16px;display:flex;flex-direction:column;gap:10px}
+  .card h2{font-family:var(--display);font-size:20px;margin:0;color:var(--ink)}
+  .card p,.card li{font-size:15px;line-height:1.5;color:var(--ink-dim);margin:0}
+  .card ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+  .card b{color:var(--ink)}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  #status{font-size:14px;color:var(--ink-dim);min-height:1.2em}
+  label{font-size:14px;color:var(--ink-dim)}
+  #nickInput{font-size:16px;padding:10px;border:3px solid var(--edge);background:#f3efe0;color:#1a1d17;width:100%;max-width:260px;font-family:var(--body);-webkit-user-select:text;user-select:text}
+  .swatches{display:flex;gap:8px;flex-wrap:wrap}
+  .sw{width:34px;height:34px;border:3px solid var(--edge);cursor:pointer;padding:0}
+  .sw[aria-pressed="true"]{outline:3px solid var(--gold);outline-offset:1px}
+  #playerList{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font-size:13px;padding:4px 8px;background:var(--edge);display:inline-flex;align-items:center;gap:6px}
+  .chip i{width:10px;height:10px;display:inline-block}
+  .link{font-family:ui-monospace,Menlo,monospace;font-size:13px;background:var(--edge);color:var(--ink);
+    padding:10px;word-break:break-all;-webkit-user-select:text;user-select:text}
+  a.btn{text-decoration:none;display:inline-block}
+  .wa{background:#25d366;color:#062b14}
+  kbd{font-family:ui-monospace,Menlo,monospace;background:var(--edge);padding:1px 5px;color:var(--ink)}
+  @media (prefers-reduced-motion:reduce){#blockName,.msg{transition:none}}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="touch"></div>
+<div id="underwater" hidden></div>
+<div id="cross"></div>
+<div id="joy" hidden><div id="joyKnob"></div></div>
+
+<div class="hud" id="topLeft">
+  <button class="btn" id="menuBtn" aria-label="Abrir menú">☰ Menú</button>
+  <button class="btn" id="flyBtn" aria-pressed="false">Volar</button>
+  <button class="btn" id="chatBtn" hidden aria-label="Escribir en el chat">💬 Chat</button>
+  <button class="btn" id="voiceBtn" hidden aria-pressed="false">🎤 Voz</button>
+</div>
+<div class="hud" id="topRight"><span id="clock">☀ Día 1</span><span id="netBadge" class="off">Solo</span></div>
+<div class="hud" id="chatLog" aria-live="polite"></div>
+<form class="hud" id="chatBar" hidden>
+  <input id="chatInput" maxlength="200" autocomplete="off" enterkeyhint="send" placeholder="Escribí un mensaje…" aria-label="Mensaje">
+  <button class="btn" type="submit">Enviar</button>
+  <button class="btn" type="button" id="chatClose" aria-label="Cerrar chat">✕</button>
+</form>
+<div class="hud" id="toast" hidden></div>
+<div class="hud" id="rightCtl">
+  <button class="btn round" id="modeBtn" aria-label="Cambiar entre romper y poner"><span id="modeIcon">⛏</span><span class="lbl" id="modeLbl">Romper</span></button>
+  <button class="btn round" id="downBtn" hidden aria-label="Bajar">▼</button>
+  <button class="btn round" id="jumpBtn" aria-label="Saltar">▲</button>
+</div>
+<div class="hud" id="blockName" style="opacity:0"></div>
+<div class="hud" id="hotbar" role="toolbar" aria-label="Bloques"></div>
+
+<div id="menu">
+  <div class="wrap">
+    <div>
+      <p class="tag">Construí con tus amigos, en vivo</p>
+      <h1>Cubolandia</h1>
+    </div>
+
+    <div class="card">
+      <h2>Tu jugador</h2>
+      <label for="nickInput">Nombre</label>
+      <input id="nickInput" maxlength="16" autocomplete="off" enterkeyhint="done">
+      <label>Color</label>
+      <div class="swatches" id="swatches"></div>
+    </div>
+
+    <div class="row">
+      <button class="btn primary" id="playBtn" disabled>Conectando…</button>
+      <span id="status"></span>
+    </div>
+
+    <div class="card" id="onlineCard" hidden>
+      <h2>Jugando ahora</h2>
+      <div id="playerList"></div>
+      <p>Tocá <b>🎤 Voz</b> adentro del juego para hablar con los que también la tengan prendida. Con auriculares se escucha mejor y no hay eco.</p>
+    </div>
+
+    <div class="card">
+      <h2>Invitar por WhatsApp</h2>
+      <p>Mandá este enlace. Quien lo abra entra al mismo mundo que vos.</p>
+      <div class="link" id="shareLink"></div>
+      <div class="row">
+        <button class="btn" id="shareBtn" hidden>Compartir…</button>
+        <a class="btn wa" id="waBtn" href="#" target="_blank" rel="noopener">Enviar por WhatsApp</a>
+        <button class="btn" id="copyBtn">Copiar enlace</button>
+      </div>
+      <p id="copyMsg"></p>
+      <p>Para tenerlo como app: abrilo en Safari, tocá <b>Compartir</b> y después <b>Agregar a inicio</b>.</p>
+    </div>
+
+    <div class="card">
+      <h2>Cómo se juega en el iPhone</h2>
+      <ul>
+        <li><b>Dedo izquierdo:</b> arrastrá para caminar.</li>
+        <li><b>Dedo derecho:</b> arrastrá para mirar. Tocá rápido para romper o poner un bloque.</li>
+        <li><b>⛏ / 🧱:</b> cambia entre romper y poner.</li>
+        <li><b>▲:</b> saltar (o subir si estás volando). En el agua, mantené ▲ para nadar.</li>
+        <li><b>Barra de abajo:</b> elegí qué bloque vas a poner.</li>
+        <li>Se juega mejor con el teléfono acostado.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>En la computadora</h2>
+      <p><kbd>W A S D</kbd> caminar · <kbd>Espacio</kbd> saltar · <kbd>Shift</kbd> bajar · <kbd>F</kbd> volar · <kbd>T</kbd> chat · <kbd>V</kbd> voz · <kbd>1</kbd>–<kbd>9</kbd> bloques · clic izquierdo rompe, clic derecho pone. <kbd>Esc</kbd> suelta el mouse.</p>
+    </div>
+
+    <div class="card" id="soloCard">
+      <h2>Tu mundo</h2>
+      <p id="soloNote">Sin conexión al servidor: jugás solo y lo que construís se guarda en este teléfono.</p>
+      <div class="row">
+        <button class="btn" id="soundBtn">Sonido: sí</button>
+        <button class="btn danger" id="newBtn" hidden>Nuevo mundo</button>
+      </div>
+      <div id="confirmBox" class="row" hidden>
+        <p>Vas a perder todo lo que construiste en este mundo.</p>
+        <button class="btn danger" id="confirmNew">Sí, crear otro</button>
+        <button class="btn" id="cancelNew">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/vendor/three.min.js"></script>
+<script>
+'use strict';
+(function(){
+const T = THREE;
+const $ = id => document.getElementById(id);
+const store = {
+  get(k){try{return localStorage.getItem(k)}catch(_){return null}},
+  set(k,v){try{localStorage.setItem(k,v)}catch(_){}}
+};
+
+/* ---------- Random + noise ---------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function makeNoise(seed){
+  const r=mulberry32(seed), p=new Uint8Array(256);
+  for(let i=0;i<256;i++)p[i]=i;
+  for(let i=255;i>0;i--){const j=Math.floor(r()*(i+1));const t=p[i];p[i]=p[j];p[j]=t}
+  const perm=new Uint8Array(512);for(let i=0;i<512;i++)perm[i]=p[i&255];
+  const val=new Float32Array(256);for(let i=0;i<256;i++)val[i]=r();
+  const h=(x,z)=>val[perm[(x&255)+perm[z&255]]];
+  return (x,z)=>{
+    const x0=Math.floor(x),z0=Math.floor(z),fx=x-x0,fz=z-z0;
+    const sx=fx*fx*(3-2*fx),sz=fz*fz*(3-2*fz);
+    const a=h(x0,z0),b=h(x0+1,z0),c=h(x0,z0+1),d=h(x0+1,z0+1);
+    const top=a+(b-a)*sx,bot=c+(d-c)*sx;return top+(bot-top)*sz;
+  };
+}
+function fbm(n,x,z,oct){let s=0,a=1,f=1,t=0;for(let i=0;i<oct;i++){s+=n(x*f,z*f)*a;t+=a;a*=.5;f*=2}return s/t}
+const smooth=(e0,e1,x)=>{const t=Math.min(1,Math.max(0,(x-e0)/(e1-e0)));return t*t*(3-2*t)};
+
+/* ---------- Blocks ---------- */
+const B={AIR:0,GRASS:1,DIRT:2,STONE:3,SAND:4,LOG:5,LEAVES:6,PLANKS:7,GLASS:8,BRICK:9,WATER:10,COBBLE:11,BEDROCK:12,SNOW:13};
+// t = [top, bottom, side] tile indexes in the atlas
+const INFO=[null,
+  {name:'Pasto',t:[0,2,1]},
+  {name:'Tierra',t:[2,2,2]},
+  {name:'Piedra',t:[3,3,3]},
+  {name:'Arena',t:[4,4,4]},
+  {name:'Tronco',t:[6,6,5]},
+  {name:'Hojas',t:[7,7,7],trans:true},
+  {name:'Tablones',t:[8,8,8]},
+  {name:'Vidrio',t:[9,9,9],trans:true},
+  {name:'Ladrillos',t:[10,10,10]},
+  {name:'Agua',t:[11,11,11],trans:true,liquid:true},
+  {name:'Adoquines',t:[12,12,12]},
+  {name:'Roca madre',t:[13,13,13]},
+  {name:'Nieve',t:[14,2,15]},
+];
+const HOTBAR=[B.GRASS,B.DIRT,B.STONE,B.COBBLE,B.PLANKS,B.LOG,B.LEAVES,B.GLASS,B.BRICK];
+
+/* ---------- Texture atlas (4x4 tiles of 16px) ---------- */
+const atlas=document.createElement('canvas');atlas.width=atlas.height=64;
+(function paint(){
+  const g=atlas.getContext('2d'), r=mulberry32(4242);
+  const hex=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+  const cl=v=>Math.max(0,Math.min(255,Math.round(v)));
+  const put=(t,x,y,c,k=1,a=1)=>{g.fillStyle=`rgba(${cl(c[0]*k)},${cl(c[1]*k)},${cl(c[2]*k)},${a})`;g.fillRect((t%4)*16+x,Math.floor(t/4)*16+y,1,1)};
+  const fill=(t,h,v)=>{const c=hex(h);for(let y=0;y<16;y++)for(let x=0;x<16;x++)put(t,x,y,c,1+(r()-.5)*v)};
+  const clear=(t,x,y)=>g.clearRect((t%4)*16+x,Math.floor(t/4)*16+y,1,1);
+  fill(0,'#5d9b3a',.35);
+  fill(2,'#7a5230',.4);
+  fill(1,'#7a5230',.4);{const c=hex('#5d9b3a');for(let x=0;x<16;x++){const d=3+(r()<.45?1:0)+(r()<.15?1:0);for(let y=0;y<d;y++)put(1,x,y,c,1+(r()-.5)*.3)}}
+  fill(3,'#8a8a88',.22);{const c=hex('#8a8a88');for(let i=0;i<14;i++)put(3,Math.floor(r()*16),Math.floor(r()*16),c,.7)}
+  fill(4,'#dccb8f',.16);
+  {const c=hex('#6b4a2b');for(let x=0;x<16;x++){const k=x%4===0?.75:1+(r()-.5)*.15;for(let y=0;y<16;y++)put(5,x,y,c,k*(1+(r()-.5)*.12))}}
+  {const bark=hex('#5a3d22'),w=hex('#b8905a');for(let y=0;y<16;y++)for(let x=0;x<16;x++){
+    if(x===0||y===0||x===15||y===15){put(6,x,y,bark,1+(r()-.5)*.2);continue}
+    const d=Math.hypot(x-7.5,y-7.5);put(6,x,y,w,(Math.floor(d)%2?.84:1)*(1+(r()-.5)*.08))}}
+  fill(7,'#3f7d2c',.5);for(let y=0;y<16;y++)for(let x=0;x<16;x++)if(r()<.16)clear(7,x,y);
+  {const c=hex('#b0844c');for(let y=0;y<16;y++)for(let x=0;x<16;x++){const row=Math.floor(y/4);
+    const seam=x===(row%2?3:11);put(8,x,y,c,(y%4===3||seam)?.62:1+(r()-.5)*.14)}}
+  {const c=hex('#dff3f7');for(let y=0;y<16;y++)for(let x=0;x<16;x++){
+    const border=x===0||y===0||x===15||y===15;const shine=(x-y===4&&x>5&&x<11)||(x-y===7&&x>8&&x<13);
+    if(border||shine)put(9,x,y,c,border?.85:1);}}
+  {const m=hex('#c9c0b0'),b=hex('#9c4a36');for(let y=0;y<16;y++)for(let x=0;x<16;x++){const row=Math.floor(y/4);
+    const mortar=y%4===3||(x+(row%2)*4)%8===7;put(10,x,y,mortar?m:b,1+(r()-.5)*(mortar?.1:.22))}}
+  fill(11,'#2d6cc0',.14);
+  {const c=hex('#7b7b79'),pts=[];for(let i=0;i<9;i++)pts.push([r()*16,r()*16,.8+r()*.4]);
+    for(let y=0;y<16;y++)for(let x=0;x<16;x++){let d1=99,d2=99,k=1;
+      for(const p of pts)for(const ox of[-16,0,16])for(const oy of[-16,0,16]){const d=Math.hypot(x-p[0]-ox,y-p[1]-oy);if(d<d1){d2=d1;d1=d;k=p[2]}else if(d<d2)d2=d}
+      put(12,x,y,c,d2-d1<1.3?.5:k*(1+(r()-.5)*.12))}}
+  fill(13,'#555555',.9);
+  fill(14,'#f2f6f9',.05);
+  fill(15,'#7a5230',.4);{const c=hex('#f2f6f9');for(let x=0;x<16;x++){const d=3+(r()<.5?1:0);for(let y=0;y<d;y++)put(15,x,y,c,1+(r()-.5)*.05)}}
+})();
+const tex=new T.CanvasTexture(atlas);
+tex.magFilter=T.NearestFilter;tex.minFilter=T.NearestFilter;tex.generateMipmaps=false;
+
+/* ---------- World ---------- */
+const WX=96,WZ=96,WH=48,CS=16,WATER=12;
+const world=new Uint8Array(WX*WZ*WH);
+const idx=(x,y,z)=>x+z*WX+y*WX*WZ;
+const inside=(x,y,z)=>x>=0&&z>=0&&y>=0&&x<WX&&z<WZ&&y<WH;
+function getM(x,y,z){if(y<0)return B.BEDROCK;if(!inside(x,y,z))return 0;return world[idx(x,y,z)]}
+function solidAt(x,y,z){
+  if(y<0||x<0||z<0||x>=WX||z>=WZ)return true;if(y>=WH)return false;
+  const id=world[idx(x,y,z)];return id!==0&&!INFO[id].liquid;
+}
+
+let seed=0, edits=new Map();
+function generate(s){
+  world.fill(0);
+  const n1=makeNoise(s),n2=makeNoise(s+1),n3=makeNoise(s+2),rnd=mulberry32(s+7);
+  const H=new Int16Array(WX*WZ);
+  for(let z=0;z<WZ;z++)for(let x=0;x<WX;x++){
+    const base=fbm(n1,x/48,z/48,4),rough=fbm(n2,x/22,z/22,3),mnt=Math.max(0,n3(x/60,z/60)-.45)*1.8;
+    const raw=8+base*12+mnt*rough*30;
+    const dx=(x-WX/2)/(WX/2),dz=(z-WZ/2)/(WZ/2),f=1-smooth(.62,1,Math.hypot(dx,dz));
+    let h=Math.round(WATER-6+(raw-(WATER-6))*f);h=Math.max(2,Math.min(WH-9,h));H[x+z*WX]=h;
+    for(let y=0;y<=h;y++){
+      let id;
+      if(y===0)id=B.BEDROCK;
+      else if(h<=WATER+1)id=y>h-4?B.SAND:B.STONE;
+      else if(h>=33)id=y===h?B.SNOW:B.STONE;
+      else id=y===h?B.GRASS:(y>h-4?B.DIRT:B.STONE);
+      world[idx(x,y,z)]=id;
+    }
+    for(let y=h+1;y<=WATER;y++)world[idx(x,y,z)]=B.WATER;
+  }
+  for(let z=3;z<WZ-3;z++)for(let x=3;x<WX-3;x++){
+    const h=H[x+z*WX];
+    if(world[idx(x,h,z)]!==B.GRASS||rnd()>.018)continue;
+    if(world[idx(x,h+1,z)]!==0)continue;
+    const th=4+Math.floor(rnd()*2);
+    for(let dy=th-2;dy<=th+1;dy++){const rad=dy<th?2:1;
+      for(let ox=-rad;ox<=rad;ox++)for(let oz=-rad;oz<=rad;oz++){
+        if(Math.abs(ox)===rad&&Math.abs(oz)===rad&&(dy===th+1||rnd()<.5))continue;
+        const X=x+ox,Y=h+1+dy,Z=z+oz;if(inside(X,Y,Z)&&world[idx(X,Y,Z)]===0)world[idx(X,Y,Z)]=B.LEAVES;}}
+    for(let dy=1;dy<=th;dy++)world[idx(x,h+dy,z)]=B.LOG;
+  }
+  for(const[k,v]of edits)if(k>=0&&k<world.length)world[k]=v;
+}
+
+/* ---------- Meshing ---------- */
+const FACES=[
+  {n:[-1,0,0],c:[[0,1,0],[0,0,0],[0,1,1],[0,0,1]],uv:[[0,1],[0,0],[1,1],[1,0]],s:.8},
+  {n:[1,0,0], c:[[1,1,1],[1,0,1],[1,1,0],[1,0,0]],uv:[[0,1],[0,0],[1,1],[1,0]],s:.8},
+  {n:[0,-1,0],c:[[1,0,1],[0,0,1],[1,0,0],[0,0,0]],uv:[[1,0],[0,0],[1,1],[0,1]],s:.5},
+  {n:[0,1,0], c:[[0,1,1],[1,1,1],[0,1,0],[1,1,0]],uv:[[1,1],[0,1],[1,0],[0,0]],s:1},
+  {n:[0,0,-1],c:[[1,0,0],[0,0,0],[1,1,0],[0,1,0]],uv:[[0,0],[1,0],[0,1],[1,1]],s:.65},
+  {n:[0,0,1], c:[[0,0,1],[1,0,1],[0,1,1],[1,1,1]],uv:[[0,0],[1,0],[0,1],[1,1]],s:.65},
+];
+const AO=[.45,.65,.82,1];
+function showFace(id,nid){
+  if(nid===0)return true;
+  const ni=INFO[nid];if(!ni.trans)return false;
+  if(id===B.LEAVES&&nid===B.LEAVES)return true;
+  return nid!==id;
+}
+const occ=(x,y,z)=>{const id=getM(x,y,z);return id&&!INFO[id].trans?1:0};
+
+const matOpaque=new T.MeshBasicMaterial({map:tex,vertexColors:true,alphaTest:.5});
+const matWater=new T.MeshBasicMaterial({map:tex,vertexColors:true,transparent:true,opacity:.72,depthWrite:false,side:T.DoubleSide});
+const scene=new T.Scene();
+const chunks=new Map();
+
+function buildChunk(cx,cz){
+  const O={p:[],u:[],c:[],i:[]},W={p:[],u:[],c:[],i:[]};
+  const x0=cx*CS,z0=cz*CS,E=.002;
+  for(let y=0;y<WH;y++)for(let z=z0;z<z0+CS;z++)for(let x=x0;x<x0+CS;x++){
+    const id=world[idx(x,y,z)];if(!id)continue;
+    const inf=INFO[id],A=inf.liquid?W:O;
+    for(const f of FACES){
+      const nx=x+f.n[0],ny=y+f.n[1],nz=z+f.n[2];
+      if(!showFace(id,getM(nx,ny,nz)))continue;
+      const tile=f.n[1]===1?inf.t[0]:f.n[1]===-1?inf.t[1]:inf.t[2];
+      const col=tile%4,row=Math.floor(tile/4);
+      const ax=f.n[0]?0:f.n[1]?1:2,u=(ax+1)%3,v=(ax+2)%3;
+      const base=A.p.length/3,ao=[];
+      for(let k=0;k<4;k++){
+        const c=f.c[k];
+        A.p.push(x+c[0],y+c[1],z+c[2]);
+        const uu=f.uv[k][0]?1-E:E,vv=f.uv[k][1]?1-E:E;
+        A.u.push((col+uu)/4,1-(row+1-vv)/4);
+        let a=3;
+        if(!inf.liquid){
+          const b=[nx,ny,nz],du=[0,0,0],dv=[0,0,0];du[u]=c[u]?1:-1;dv[v]=c[v]?1:-1;
+          const s1=occ(b[0]+du[0],b[1]+du[1],b[2]+du[2]),s2=occ(b[0]+dv[0],b[1]+dv[1],b[2]+dv[2]);
+          const s3=occ(b[0]+du[0]+dv[0],b[1]+du[1]+dv[1],b[2]+du[2]+dv[2]);
+          a=(s1&&s2)?0:3-(s1+s2+s3);
+        }
+        ao.push(a);const l=f.s*AO[a];A.c.push(l,l,l);
+      }
+      if(ao[0]+ao[3]>ao[1]+ao[2])A.i.push(base,base+1,base+3,base,base+3,base+2);
+      else A.i.push(base,base+1,base+2,base+2,base+1,base+3);
+    }
+  }
+  const key=cx+','+cz;let ch=chunks.get(key);
+  if(!ch){ch={o:new T.Mesh(new T.BufferGeometry(),matOpaque),w:new T.Mesh(new T.BufferGeometry(),matWater)};
+    ch.w.renderOrder=1;scene.add(ch.o,ch.w);chunks.set(key,ch)}
+  const setGeo=(mesh,a)=>{
+    mesh.geometry.dispose();const g=new T.BufferGeometry();
+    g.setAttribute('position',new T.Float32BufferAttribute(a.p,3));
+    g.setAttribute('uv',new T.Float32BufferAttribute(a.u,2));
+    g.setAttribute('color',new T.Float32BufferAttribute(a.c,3));
+    g.setIndex(a.i);g.computeBoundingSphere();mesh.geometry=g;
+  };
+  setGeo(ch.o,O);setGeo(ch.w,W);
+}
+function buildAll(){for(let cz=0;cz<WZ/CS;cz++)for(let cx=0;cx<WX/CS;cx++)buildChunk(cx,cz)}
+
+// fromNet: the edit came from another player, so don't send it back.
+function setBlock(x,y,z,id,fromNet){
+  if(!inside(x,y,z))return;
+  const k=idx(x,y,z);if(world[k]===id)return;
+  world[k]=id;edits.set(k,id);dirty=true;
+  if(!fromNet)netSend({t:'set',x,y,z,id});
+  const todo=new Set();
+  for(const dx of[-1,0,1])for(const dz of[-1,0,1]){
+    const X=x+dx,Z=z+dz;if(X<0||Z<0||X>=WX||Z>=WZ)continue;todo.add(Math.floor(X/CS)+','+Math.floor(Z/CS));}
+  for(const s of todo){const[a,b]=s.split(',').map(Number);buildChunk(a,b)}
+}
+
+/* ---------- Renderer ---------- */
+const canvas=$('game');
+const renderer=new T.WebGLRenderer({canvas,antialias:false});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+const camera=new T.PerspectiveCamera(75,1,.08,200);camera.rotation.order='YXZ';
+const SKY_DAY=new T.Color('#8fc6ea'),SKY_NIGHT=new T.Color('#0c1230'),WATER_FOG=new T.Color('#1d4f96');
+scene.background=SKY_DAY.clone();scene.fog=new T.Fog(SKY_DAY.clone(),24,72);
+function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
+addEventListener('resize',resize);resize();
+
+const hl=new T.LineSegments(new T.EdgesGeometry(new T.BoxGeometry(1.004,1.004,1.004)),new T.LineBasicMaterial({color:0x111111}));
+hl.visible=false;scene.add(hl);
+
+/* ---------- Player ---------- */
+const P={x:48,y:30,z:48,vx:0,vy:0,vz:0,yaw:0,pitch:0,ground:false,fly:false};
+const PW=.3,PH=1.8,EYE=1.62;
+function collides(x,y,z){
+  for(let by=Math.floor(y);by<=Math.floor(y+PH-.001);by++)
+  for(let bx=Math.floor(x-PW);bx<=Math.floor(x+PW);bx++)
+  for(let bz=Math.floor(z-PW);bz<=Math.floor(z+PW);bz++)if(solidAt(bx,by,bz))return true;
+  return false;
+}
+function spawn(){
+  const r0=Math.random()*4;
+  for(let r=r0;r<40;r++)for(let a=0;a<16;a++){
+    const x=Math.floor(WX/2+Math.cos(a/16*Math.PI*2)*r),z=Math.floor(WZ/2+Math.sin(a/16*Math.PI*2)*r);
+    if(!inside(x,0,z))continue;
+    let y=WH-1;while(y>0&&world[idx(x,y,z)]===0)y--;
+    const id=world[idx(x,y,z)];
+    if(id!==B.WATER&&id!==B.LEAVES&&y>WATER&&!collides(x+.5,y+1,z+.5)){P.x=x+.5;P.z=z+.5;P.y=y+1;P.vx=P.vy=P.vz=0;return}
+  }
+  P.x=WX/2+.5;P.z=WZ/2+.5;P.y=WH-2;
+}
+const inWater=(x,y,z)=>{const X=Math.floor(x),Y=Math.floor(y),Z=Math.floor(z);return inside(X,Y,Z)&&world[idx(X,Y,Z)]===B.WATER};
+
+let blockedH=false;
+function moveAxis(axis,d){
+  const steps=Math.max(1,Math.ceil(Math.abs(d)/.25)),s=d/steps;
+  for(let i=0;i<steps;i++){
+    P[axis]+=s;
+    if(!collides(P.x,P.y,P.z))continue;
+    if(axis==='y'){
+      if(s<0){P.y=Math.floor(P.y)+1;P.ground=true}else P.y=Math.floor(P.y+PH)-PH-.001;
+      P.vy=0;
+    }else{
+      const w=PW+.001;
+      P[axis]=s>0?Math.floor(P[axis]+PW)-w:Math.floor(P[axis]-PW)+1+w;
+      if(axis==='x')P.vx=0;else P.vz=0;blockedH=true;
+    }
+    return;
+  }
+}
+
+/* ---------- Toasts + chat log ---------- */
+let toastTimer=0;
+function toast(text,ms){const t=$('toast');t.textContent=text;t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.hidden=true,ms||3500)}
+function logLine(parts,sys){
+  const log=$('chatLog'),el=document.createElement('div');el.className='msg'+(sys?' sys':'');
+  if(sys)el.textContent=parts;
+  else{const b=document.createElement('b');b.textContent=parts.name+': ';b.style.color=parts.color;el.appendChild(b);el.appendChild(document.createTextNode(parts.text))}
+  log.appendChild(el);while(log.children.length>6)log.firstChild.remove();
+  setTimeout(()=>{el.style.opacity=0;setTimeout(()=>el.remove(),1000)},12000);
+}
+
+/* ---------- Input ---------- */
+const input={mx:0,my:0,jump:false,down:false,keys:{},touchUsed:false};
+let mode='break',sel=0,menuOpen=true;
+
+const joyEl=$('joy'),knob=$('joyKnob'),layer=$('touch');
+let joy=null,look=null,lockedOnce=false;
+const clampPitch=()=>{P.pitch=Math.max(-1.55,Math.min(1.55,P.pitch))};
+const typing=()=>document.activeElement&&document.activeElement.tagName==='INPUT';
+layer.addEventListener('contextmenu',e=>e.preventDefault());
+layer.addEventListener('pointerdown',e=>{
+  if(menuOpen)return;e.preventDefault();ensureAudio();
+  if(typing())document.activeElement.blur();
+  if(e.pointerType==='mouse'){
+    if(document.pointerLockElement===layer){if(e.button===0)breakBlock();else if(e.button===2)placeBlock();return}
+    look={id:e.pointerId,lx:e.clientX,ly:e.clientY,moved:0,t0:performance.now(),button:e.button};
+    try{const p=layer.requestPointerLock&&layer.requestPointerLock();if(p&&p.catch)p.catch(()=>{})}catch(_){}
+    return;
+  }
+  input.touchUsed=true;
+  try{layer.setPointerCapture(e.pointerId)}catch(_){}
+  if(e.clientX<innerWidth/2&&!joy){
+    joy={id:e.pointerId,ox:e.clientX,oy:e.clientY};joyEl.style.left=e.clientX+'px';joyEl.style.top=e.clientY+'px';
+    knob.style.transform='';joyEl.hidden=false;
+  }else if(!look){look={id:e.pointerId,lx:e.clientX,ly:e.clientY,moved:0,t0:performance.now(),button:-1}}
+},{passive:false});
+layer.addEventListener('pointermove',e=>{
+  if(document.pointerLockElement===layer){P.yaw-=e.movementX*.0025;P.pitch-=e.movementY*.0025;clampPitch();return}
+  if(joy&&e.pointerId===joy.id){
+    let dx=e.clientX-joy.ox,dy=e.clientY-joy.oy;const L=Math.hypot(dx,dy),R=50;
+    if(L>R){dx*=R/L;dy*=R/L}
+    knob.style.transform=`translate(${dx}px,${dy}px)`;input.mx=dx/R;input.my=-dy/R;
+  }else if(look&&e.pointerId===look.id){
+    const dx=e.clientX-look.lx,dy=e.clientY-look.ly;look.lx=e.clientX;look.ly=e.clientY;look.moved+=Math.abs(dx)+Math.abs(dy);
+    const k=e.pointerType==='mouse'?.005:.0065;P.yaw-=dx*k;P.pitch-=dy*k;clampPitch();
+  }
+});
+function endPointer(e){
+  if(joy&&e.pointerId===joy.id){joy=null;joyEl.hidden=true;input.mx=input.my=0}
+  else if(look&&e.pointerId===look.id){
+    if(e.type==='pointerup'&&look.moved<12&&performance.now()-look.t0<350&&document.pointerLockElement!==layer){
+      if(look.button===0)breakBlock();else if(look.button===2)placeBlock();else if(mode==='break')breakBlock();else placeBlock();
+    }
+    look=null;
+  }
+}
+layer.addEventListener('pointerup',endPointer);layer.addEventListener('pointercancel',endPointer);
+document.addEventListener('touchmove',e=>{if(!menuOpen)e.preventDefault()},{passive:false});
+document.addEventListener('gesturestart',e=>e.preventDefault());
+document.addEventListener('dblclick',e=>e.preventDefault());
+
+function holdBtn(el,on,off){
+  el.addEventListener('pointerdown',e=>{e.preventDefault();ensureAudio();on()});
+  for(const ev of['pointerup','pointercancel','pointerleave'])el.addEventListener(ev,off);
+}
+holdBtn($('jumpBtn'),()=>input.jump=true,()=>input.jump=false);
+holdBtn($('downBtn'),()=>input.down=true,()=>input.down=false);
+$('modeBtn').addEventListener('pointerdown',e=>{e.preventDefault();setMode(mode==='break'?'place':'break')});
+$('flyBtn').addEventListener('click',()=>toggleFly());
+$('menuBtn').addEventListener('click',()=>openMenu());
+
+function setMode(m){mode=m;$('modeIcon').textContent=m==='break'?'⛏':'🧱';$('modeLbl').textContent=m==='break'?'Romper':'Poner'}
+function toggleFly(){P.fly=!P.fly;P.vy=0;$('flyBtn').classList.toggle('on',P.fly);$('flyBtn').setAttribute('aria-pressed',P.fly);$('downBtn').hidden=!P.fly}
+
+addEventListener('keydown',e=>{
+  if(menuOpen||typing())return;const k=e.key.toLowerCase();input.keys[k]=true;
+  if(k==='f')toggleFly();
+  if(k==='q')setMode(mode==='break'?'place':'break');
+  if(k>='1'&&k<='9')selectSlot(+k-1);
+  if((k==='t'||k==='enter')&&net.online){e.preventDefault();openChat()}
+  if(k==='v'&&net.online)toggleVoice();
+  if(k===' ')e.preventDefault();
+});
+addEventListener('keyup',e=>{input.keys[e.key.toLowerCase()]=false});
+addEventListener('blur',()=>{input.keys={};input.jump=input.down=false});
+addEventListener('wheel',e=>{if(!menuOpen)selectSlot((sel+(e.deltaY>0?1:-1)+HOTBAR.length)%HOTBAR.length)},{passive:true});
+document.addEventListener('pointerlockchange',()=>{
+  if(document.pointerLockElement){lockedOnce=true;return}
+  // Esc releases the mouse; open the menu so the game pauses.
+  if(!menuOpen&&!input.touchUsed&&lockedOnce&&!typing()&&!chatOpening)openMenu();
+});
+
+/* ---------- Hotbar ---------- */
+const hb=$('hotbar');
+HOTBAR.forEach((id,i)=>{
+  const b=document.createElement('button');b.className='slot';b.setAttribute('aria-label',INFO[id].name);
+  const c=document.createElement('canvas');c.width=c.height=16;const t=INFO[id].t[2];
+  c.getContext('2d').drawImage(atlas,(t%4)*16,Math.floor(t/4)*16,16,16,0,0,16,16);
+  b.appendChild(c);b.addEventListener('pointerdown',e=>{e.preventDefault();selectSlot(i);if(mode==='break')setMode('place')});hb.appendChild(b);
+});
+let nameTimer=0;
+function selectSlot(i){
+  sel=i;[...hb.children].forEach((b,j)=>b.classList.toggle('sel',j===i));
+  const n=$('blockName');n.textContent=INFO[HOTBAR[i]].name;n.style.opacity=1;clearTimeout(nameTimer);nameTimer=setTimeout(()=>n.style.opacity=0,1200);
+}
+
+/* ---------- Sound effects ---------- */
+let actx=null,soundOn=true;
+function ensureAudio(){if(!actx&&soundOn){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(_){}}if(actx&&actx.state==='suspended')actx.resume()}
+function sfx(freq,dur){
+  if(!actx||!soundOn)return;
+  const n=Math.floor(actx.sampleRate*dur),buf=actx.createBuffer(1,n,actx.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);
+  const s=actx.createBufferSource();s.buffer=buf;const f=actx.createBiquadFilter();f.type='lowpass';f.frequency.value=freq;
+  const g=actx.createGain();g.gain.value=.35;s.connect(f).connect(g).connect(actx.destination);s.start();
+}
+
+/* ---------- Raycast + actions ---------- */
+function raycast(){
+  const ox=P.x,oy=P.y+EYE,oz=P.z;
+  const dir=new T.Vector3(0,0,-1).applyEuler(camera.rotation);const dx=dir.x,dy=dir.y,dz=dir.z;
+  let x=Math.floor(ox),y=Math.floor(oy),z=Math.floor(oz),px=x,py=y,pz=z;
+  const sx=Math.sign(dx),sy=Math.sign(dy),sz=Math.sign(dz);
+  const td=v=>v===0?Infinity:Math.abs(1/v);
+  const tdx=td(dx),tdy=td(dy),tdz=td(dz);
+  let tmx=dx===0?Infinity:(sx>0?x+1-ox:ox-x)*tdx,tmy=dy===0?Infinity:(sy>0?y+1-oy:oy-y)*tdy,tmz=dz===0?Infinity:(sz>0?z+1-oz:oz-z)*tdz;
+  let t=0;
+  while(t<=6){
+    if(inside(x,y,z)){const id=world[idx(x,y,z)];if(id&&!INFO[id].liquid)return{x,y,z,px,py,pz,id}}
+    px=x;py=y;pz=z;
+    if(tmx<tmy&&tmx<tmz){x+=sx;t=tmx;tmx+=tdx}else if(tmy<tmz){y+=sy;t=tmy;tmy+=tdy}else{z+=sz;t=tmz;tmz+=tdz}
+  }
+  return null;
+}
+let target=null;
+function breakBlock(){
+  if(!target||target.id===B.BEDROCK)return;
+  const{x,y,z}=target;let fillWater=false;
+  if(y<=WATER)for(const[a,b,c]of[[1,0,0],[-1,0,0],[0,0,1],[0,0,-1],[0,1,0]])if(getM(x+a,y+b,z+c)===B.WATER)fillWater=true;
+  setBlock(x,y,z,fillWater?B.WATER:0);sfx(900,.12);
+}
+function blocksPlayer(px,py,pz,x,y,z){return px<x+PW&&px+1>x-PW&&pz<z+PW&&pz+1>z-PW&&py<y+PH&&py+1>y}
+function placeBlock(){
+  if(!target)return;const{px,py,pz}=target;
+  if(!inside(px,py,pz))return;const cur=world[idx(px,py,pz)];if(cur!==0&&cur!==B.WATER)return;
+  if(blocksPlayer(px,py,pz,P.x,P.y,P.z))return;
+  for(const o of net.peers.values())if(blocksPlayer(px,py,pz,o.cur.x,o.cur.y,o.cur.z))return;
+  setBlock(px,py,pz,HOTBAR[sel]);sfx(500,.09);
+}
+
+/* ---------- Solo save (only when there is no server) ---------- */
+const SAVE_KEY='cubolandia-solo-v1';let dirty=false,dayTime=.3;
+function saveSolo(){
+  if(net.mode!=='solo')return;
+  store.set(SAVE_KEY,JSON.stringify({seed,edits:[...edits],p:[P.x,P.y,P.z,P.yaw,P.pitch],sel,dayTime}));dirty=false;
+}
+function loadSolo(){try{const s=JSON.parse(store.get(SAVE_KEY)||'null');if(s&&typeof s.seed==='number')return s}catch(_){}return null}
+setInterval(()=>{if(dirty)saveSolo()},3000);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)saveSolo()});
+
+/* ---------- Player profile ---------- */
+const COLORS=['#e0524c','#f2c14e','#46c46a','#3f8fe0','#9b5de5','#f47fb4','#ff8a3d','#e8e8e8'];
+let nick=(store.get('cubolandia-nick')||'').slice(0,16);
+let myColor=store.get('cubolandia-color');
+if(!nick)nick='Jugador '+Math.floor(10+Math.random()*90);
+if(!COLORS.includes(myColor))myColor=COLORS[Math.floor(Math.random()*COLORS.length)];
+const nickInput=$('nickInput');nickInput.value=nick;
+const sw=$('swatches');
+COLORS.forEach(c=>{const b=document.createElement('button');b.className='sw';b.style.background=c;b.setAttribute('aria-label','Color '+c);
+  b.setAttribute('aria-pressed',c===myColor);b.addEventListener('click',()=>{myColor=c;[...sw.children].forEach(x=>x.setAttribute('aria-pressed',x===b));profileChanged()});sw.appendChild(b)});
+nickInput.addEventListener('change',()=>{nick=nickInput.value.trim().slice(0,16)||nick;nickInput.value=nick;profileChanged()});
+function profileChanged(){store.set('cubolandia-nick',nick);store.set('cubolandia-color',myColor);netSend({t:'info',name:nick,color:myColor});renderPlayerList()}
+
+/* ---------- Other players ---------- */
+const net={mode:'connecting',ws:null,id:null,online:false,peers:new Map(),lastPos:''};
+function netSend(m){if(net.online&&net.ws&&net.ws.readyState===1)net.ws.send(JSON.stringify(m))}
+
+function nameSprite(text,voiceOn){
+  const c=document.createElement('canvas');c.width=256;c.height=64;const g=c.getContext('2d');
+  const label=(voiceOn?'🎤 ':'')+text;
+  g.font='bold 30px -apple-system, Segoe UI, sans-serif';const w=Math.min(250,g.measureText(label).width+24);
+  g.fillStyle='rgba(0,0,0,.55)';g.fillRect((256-w)/2,8,w,48);
+  g.fillStyle='#fff';g.textAlign='center';g.textBaseline='middle';g.fillText(label,128,33,240);
+  const t=new T.CanvasTexture(c);t.minFilter=T.LinearFilter;
+  const s=new T.Sprite(new T.SpriteMaterial({map:t,depthWrite:false}));s.scale.set(1.8,.45,1);s.position.y=2.3;return s;
+}
+function makeAvatar(p){
+  const g=new T.Group();
+  const shirt=new T.MeshBasicMaterial({color:p.color}),skin=new T.MeshBasicMaterial({color:0xe8b98f}),pants=new T.MeshBasicMaterial({color:0x2f3e6b});
+  const legs=new T.Mesh(new T.BoxGeometry(.5,.7,.28),pants);legs.position.y=.35;
+  const body=new T.Mesh(new T.BoxGeometry(.6,.72,.32),shirt);body.position.y=1.06;
+  const head=new T.Group();head.position.y=1.66;
+  const skull=new T.Mesh(new T.BoxGeometry(.48,.48,.48),skin);
+  const eyeMat=new T.MeshBasicMaterial({color:0x1b1b1b});
+  for(const ex of[-.11,.11]){const e=new T.Mesh(new T.BoxGeometry(.08,.08,.02),eyeMat);e.position.set(ex,.04,-.245);head.add(e)}
+  head.add(skull);g.add(legs,body,head);
+  const peer={...p,g,head,label:null,cur:{x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch},tgt:{x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch}};
+  setLabel(peer);scene.add(g);return peer;
+}
+function setLabel(peer){
+  if(peer.label){peer.g.remove(peer.label);peer.label.material.map.dispose();peer.label.material.dispose()}
+  peer.label=nameSprite(peer.name,peer.voice);peer.g.add(peer.label);
+}
+function addPeer(p){if(p.id===net.id||net.peers.has(p.id))return;net.peers.set(p.id,makeAvatar(p));renderPlayerList()}
+function removePeer(id){
+  const peer=net.peers.get(id);if(!peer)return;
+  scene.remove(peer.g);net.peers.delete(id);closePc(id);renderPlayerList();
+}
+function clearPeers(){for(const id of[...net.peers.keys()])removePeer(id)}
+function renderPlayerList(){
+  const list=$('playerList');list.textContent='';
+  const add=(name,color,you,voiceOn)=>{const c=document.createElement('span');c.className='chip';const i=document.createElement('i');i.style.background=color;c.appendChild(i);
+    c.appendChild(document.createTextNode((voiceOn?'🎤 ':'')+name+(you?' (vos)':'')));list.appendChild(c)};
+  add(nick,myColor,true,voice.on);
+  for(const p of net.peers.values())add(p.name,p.color,false,p.voice);
+  const n=net.peers.size+1;
+  $('netBadge').textContent=net.online?`● Online · ${n} jugador${n>1?'es':''}`:(net.mode==='solo'?'Solo':'Reconectando…');
+  $('netBadge').classList.toggle('off',!net.online);
+}
+function updatePeers(dt){
+  const k=Math.min(1,dt*10);
+  for(const p of net.peers.values()){
+    const c=p.cur,t=p.tgt;
+    c.x+=(t.x-c.x)*k;c.y+=(t.y-c.y)*k;c.z+=(t.z-c.z)*k;c.pitch+=(t.pitch-c.pitch)*k;
+    let dy=t.yaw-c.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));c.yaw+=dy*k;
+    p.g.position.set(c.x,c.y,c.z);p.g.rotation.y=c.yaw;p.head.rotation.x=c.pitch;
+  }
+}
+
+/* ---------- Connection ---------- */
+let reconnectDelay=1000,everWelcomed=false;
+function connect(){
+  if(location.protocol==='file:'){startSolo();return}
+  let ws;
+  try{ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws')}catch(_){startSolo();return}
+  net.ws=ws;
+  const giveUp=setTimeout(()=>{if(!net.online&&!everWelcomed){try{ws.close()}catch(_){}}},7000);
+  ws.onopen=()=>ws.send(JSON.stringify({t:'hello',name:nick,color:myColor}));
+  ws.onmessage=e=>{let m;try{m=JSON.parse(e.data)}catch(_){return}handle(m)};
+  ws.onclose=()=>{
+    clearTimeout(giveUp);
+    const was=net.online;net.online=false;
+    if(voice.on)stopVoice(true);
+    clearPeers();
+    if(!everWelcomed){startSolo();return}
+    if(was)logLine('Se cortó la conexión. Reconectando…',true);
+    renderPlayerList();
+    setTimeout(connect,reconnectDelay);reconnectDelay=Math.min(15000,reconnectDelay*2);
+  };
+}
+function handle(m){
+  switch(m.t){
+    case 'welcome':{
+      const sameWorld=ready&&net.mode==='online'&&seed===m.seed;
+      net.id=m.id;net.online=true;net.mode='online';reconnectDelay=1000;
+      seed=m.seed;edits=new Map();
+      for(const k in m.edits)edits.set(+k,m.edits[k]);
+      generate(seed);buildAll();
+      if(!sameWorld)spawn();
+      for(const p of m.players)addPeer(p);
+      if(!everWelcomed){everWelcomed=true;finishBoot('Jugar online')}
+      else logLine('Conectado de nuevo.',true);
+      $('chatBtn').hidden=false;$('voiceBtn').hidden=false;$('onlineCard').hidden=false;
+      $('soloNote').textContent='Estás en el mundo compartido del servidor. Todo lo que construyan queda guardado ahí.';
+      renderPlayerList();sendPos(true);
+      break;
+    }
+    case 'full': toast('El servidor está lleno. Por ahora jugás solo.',5000);break;
+    case 'join': addPeer(m.p);logLine(m.p.name+' entró al mundo.',true);break;
+    case 'leave':{const p=net.peers.get(m.id);if(p)logLine(p.name+' salió.',true);removePeer(m.id);break}
+    case 'poses':
+      for(const[id,x,y,z,yaw,pitch]of m.l){const p=net.peers.get(id);if(p)Object.assign(p.tgt,{x,y,z,yaw,pitch})}
+      break;
+    case 'set':
+      if(Number.isInteger(m.x)&&Number.isInteger(m.y)&&Number.isInteger(m.z)&&INFO[m.id]!==undefined)setBlock(m.x,m.y,m.z,m.id,true);
+      break;
+    case 'chat': logLine({name:m.name,color:m.color,text:m.text});break;
+    case 'info':{const p=net.peers.get(m.id);if(p){p.name=m.name;p.color=m.color;p.g.children[1].material.color.set(m.color);setLabel(p);renderPlayerList()}break}
+    case 'voice':{
+      const p=net.peers.get(m.id);if(!p)break;p.voice=m.on;setLabel(p);renderPlayerList();
+      if(!m.on)closePc(m.id);
+      else if(voice.on&&net.id<m.id)callPeer(m.id);
+      break;
+    }
+    case 'rtc': handleRtc(m.from,m.data);break;
+  }
+}
+function sendPos(force){
+  if(!net.online)return;
+  const s=[P.x.toFixed(2),P.y.toFixed(2),P.z.toFixed(2),P.yaw.toFixed(3),P.pitch.toFixed(3)].join();
+  if(!force&&s===net.lastPos)return;net.lastPos=s;
+  netSend({t:'pos',x:P.x,y:P.y,z:P.z,yaw:P.yaw,pitch:P.pitch});
+}
+setInterval(()=>sendPos(false),100);
+
+/* ---------- Text chat ---------- */
+const chatBar=$('chatBar'),chatInput=$('chatInput');let chatOpening=false;
+function openChat(){
+  chatOpening=true;chatBar.hidden=false;
+  if(document.pointerLockElement)document.exitPointerLock();
+  chatInput.focus();setTimeout(()=>chatOpening=false,300);
+}
+function closeChat(){chatBar.hidden=true;chatInput.value='';chatInput.blur()}
+$('chatBtn').addEventListener('click',openChat);
+$('chatClose').addEventListener('click',closeChat);
+chatBar.addEventListener('submit',e=>{
+  e.preventDefault();const text=chatInput.value.trim();
+  if(text)netSend({t:'chat',text});
+  closeChat();
+});
+chatInput.addEventListener('keydown',e=>{if(e.key==='Escape')closeChat()});
+
+/* ---------- Voice chat (WebRTC, one connection per pair) ---------- */
+const voice={on:false,stream:null,pcs:new Map(),audios:new Map(),pending:new Map()};
+const ICE={iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}]};
+function setVoiceBtn(state){
+  const b=$('voiceBtn');b.disabled=state==='busy';
+  b.classList.toggle('on',state==='on');b.setAttribute('aria-pressed',state==='on');
+  b.textContent=state==='on'?'🎤 Voz prendida':state==='busy'?'🎤 …':'🎤 Voz';
+}
+$('voiceBtn').addEventListener('click',toggleVoice);
+async function toggleVoice(){
+  if(voice.on){stopVoice();return}
+  if(!window.RTCPeerConnection||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    toast('Este navegador no permite chat de voz. Probá con Safari o Chrome actualizados.',5000);return}
+  setVoiceBtn('busy');
+  try{
+    voice.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
+  }catch(_){
+    setVoiceBtn('off');
+    toast('No pude usar el micrófono. Permitilo cuando Safari lo pida, o en Ajustes › Safari › Micrófono.',6000);return;
+  }
+  voice.on=true;setVoiceBtn('on');netSend({t:'voice',on:true});renderPlayerList();
+  const others=[...net.peers.values()].filter(p=>p.voice);
+  toast(others.length?'Voz prendida. Te escuchan '+others.map(p=>p.name).join(', ')+'.':'Voz prendida. Cuando otro la prenda, van a poder hablar.',3500);
+  for(const p of others)if(net.id<p.id)callPeer(p.id);
+}
+function stopVoice(silent){
+  voice.on=false;
+  for(const id of[...voice.pcs.keys()])closePc(id);
+  if(voice.stream)voice.stream.getTracks().forEach(t=>t.stop());
+  voice.stream=null;
+  if(!silent)netSend({t:'voice',on:false});
+  setVoiceBtn('off');renderPlayerList();
+}
+function makePc(id){
+  const pc=new RTCPeerConnection(ICE);voice.pcs.set(id,pc);
+  voice.stream.getTracks().forEach(t=>pc.addTrack(t,voice.stream));
+  pc.onicecandidate=e=>{if(e.candidate)netSend({t:'rtc',to:id,data:{c:e.candidate.toJSON()}})};
+  pc.ontrack=e=>{
+    let a=voice.audios.get(id);
+    if(!a){a=document.createElement('audio');a.autoplay=true;a.setAttribute('playsinline','');document.body.appendChild(a);voice.audios.set(id,a)}
+    a.srcObject=e.streams[0];const pr=a.play();if(pr&&pr.catch)pr.catch(()=>{});
+  };
+  pc.onconnectionstatechange=()=>{
+    if(pc.connectionState==='failed'){
+      const p=net.peers.get(id);closePc(id);
+      toast('No se pudo conectar la voz con '+(p?p.name:'otro jugador')+'. Puede ser la red: probá con wifi.',5000);
+    }
+  };
+  return pc;
+}
+function closePc(id){
+  const pc=voice.pcs.get(id);if(pc){try{pc.close()}catch(_){}voice.pcs.delete(id)}
+  const a=voice.audios.get(id);if(a){a.srcObject=null;a.remove();voice.audios.delete(id)}
+  voice.pending.delete(id);
+}
+async function callPeer(id){
+  if(!voice.on||voice.pcs.has(id))return;
+  const pc=makePc(id);
+  try{
+    await pc.setLocalDescription(await pc.createOffer());
+    netSend({t:'rtc',to:id,data:{sdp:{type:pc.localDescription.type,sdp:pc.localDescription.sdp}}});
+  }catch(_){closePc(id)}
+}
+async function flushCandidates(id,pc){
+  const list=voice.pending.get(id);voice.pending.delete(id);
+  if(list)for(const c of list){try{await pc.addIceCandidate(c)}catch(_){}}
+}
+async function handleRtc(from,d){
+  if(!voice.on||!d||typeof d!=='object')return;
+  try{
+    if(d.sdp&&d.sdp.type==='offer'){
+      closePc(from);const pc=makePc(from);
+      await pc.setRemoteDescription(d.sdp);
+      await pc.setLocalDescription(await pc.createAnswer());
+      netSend({t:'rtc',to:from,data:{sdp:{type:pc.localDescription.type,sdp:pc.localDescription.sdp}}});
+      flushCandidates(from,pc);
+    }else if(d.sdp&&d.sdp.type==='answer'){
+      const pc=voice.pcs.get(from);if(!pc)return;
+      await pc.setRemoteDescription(d.sdp);flushCandidates(from,pc);
+    }else if(d.c){
+      const pc=voice.pcs.get(from);
+      if(pc&&pc.remoteDescription){try{await pc.addIceCandidate(d.c)}catch(_){}}
+      else{if(!voice.pending.has(from))voice.pending.set(from,[]);voice.pending.get(from).push(d.c)}
+    }
+  }catch(_){closePc(from)}
+}
+
+/* ---------- Menu ---------- */
+const menu=$('menu');
+function openMenu(){menuOpen=true;menu.hidden=false;input.mx=input.my=0;input.jump=input.down=false;joy=null;look=null;joyEl.hidden=true;
+  closeChat();if(document.pointerLockElement)document.exitPointerLock();saveSolo();renderPlayerList()}
+function closeMenu(){menuOpen=false;menu.hidden=true;ensureAudio();$('confirmBox').hidden=true;
+  nick=nickInput.value.trim().slice(0,16)||nick;profileChanged()}
+$('playBtn').addEventListener('click',closeMenu);
+$('soundBtn').addEventListener('click',()=>{soundOn=!soundOn;$('soundBtn').textContent='Sonido: '+(soundOn?'sí':'no')});
+$('newBtn').addEventListener('click',()=>{$('confirmBox').hidden=false});
+$('cancelNew').addEventListener('click',()=>{$('confirmBox').hidden=true});
+$('confirmNew').addEventListener('click',()=>{
+  if(net.mode!=='solo')return;
+  seed=Math.floor(Math.random()*1e9);edits=new Map();generate(seed);buildAll();spawn();P.yaw=0;P.pitch=0;dayTime=.3;dirty=true;saveSolo();
+  $('confirmBox').hidden=true;$('status').textContent='Mundo nuevo listo.';
+});
+
+// Share
+const shareUrl=location.protocol==='file:'?'':location.origin+'/';
+const shareText='¡Vení a construir conmigo en Cubolandia! 🧱 ';
+$('shareLink').textContent=shareUrl||'Subí el juego a un servidor para tener un enlace.';
+$('waBtn').href='https://wa.me/?text='+encodeURIComponent(shareText+shareUrl);
+if(navigator.share&&shareUrl){
+  $('shareBtn').hidden=false;
+  $('shareBtn').addEventListener('click',()=>{navigator.share({title:'Cubolandia',text:shareText,url:shareUrl}).catch(()=>{})});
+}
+$('copyBtn').addEventListener('click',()=>{
+  const msg=$('copyMsg');
+  const selectIt=()=>{const r=document.createRange();r.selectNodeContents($('shareLink'));const s=getSelection();s.removeAllRanges();s.addRange(r);msg.textContent='Seleccioné el enlace: mantené apretado y elegí Copiar.'};
+  try{navigator.clipboard.writeText(shareUrl).then(()=>msg.textContent='Enlace copiado. Pegalo en WhatsApp.',selectIt)}catch(_){selectIt()}
+});
+
+/* ---------- Loop ---------- */
+const DAY_LEN=600; // seconds per full day
+let last=performance.now(),dayCount=1,prevDayTime=dayTime,ready=false;
+function step(dt){
+  const k=input.keys;
+  let mx=input.mx+((k.d||k.arrowright)?1:0)-((k.a||k.arrowleft)?1:0);
+  let my=input.my+((k.w||k.arrowup)?1:0)-((k.s||k.arrowdown)?1:0);
+  const L=Math.hypot(mx,my);if(L>1){mx/=L;my/=L}
+  const jump=input.jump||k[' '],down=input.down||k.shift;
+  const wet=inWater(P.x,P.y+.4,P.z);
+  const speed=P.fly?10:wet?2.6:4.6;
+  const sn=Math.sin(P.yaw),cs=Math.cos(P.yaw);
+  P.vx=(-sn*my+cs*mx)*speed;P.vz=(-cs*my-sn*mx)*speed;
+  if(P.fly){P.vy=((jump?1:0)-(down?1:0))*8}
+  else if(wet){P.vy-=10*dt;if(jump)P.vy=3.2;P.vy=Math.max(P.vy,-3)}
+  else{P.vy-=28*dt;if(jump&&P.ground)P.vy=8.2;P.vy=Math.max(P.vy,-40)}
+  P.ground=false;blockedH=false;
+  moveAxis('x',P.vx*dt);moveAxis('z',P.vz*dt);moveAxis('y',P.vy*dt);
+  // Auto-jump one-block steps when walking with the on-screen stick.
+  if(blockedH&&P.ground&&!P.fly&&input.touchUsed&&(input.mx||input.my)&&!collides(P.x,P.y+1.05,P.z))P.vy=8.2;
+  if(P.y<-5)spawn();
+}
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;
+  if(ready){
+    if(!menuOpen&&chatBar.hidden)step(dt);
+    else if(!menuOpen){P.vx=P.vz=0}
+    dayTime=(dayTime+dt/DAY_LEN)%1;
+    if(dayTime<prevDayTime)dayCount++;prevDayTime=dayTime;
+    updatePeers(dt);
+  }
+  camera.position.set(P.x,P.y+EYE,P.z);camera.rotation.set(P.pitch,P.yaw,0);
+  const sun=Math.sin(dayTime*Math.PI*2),light=Math.max(.28,Math.min(1,.55+sun*.9)),skyT=(light-.28)/.72;
+  const eyeWet=inWater(P.x,P.y+EYE,P.z),sky=SKY_NIGHT.clone().lerp(SKY_DAY,skyT);
+  scene.background.copy(sky);
+  if(eyeWet){scene.fog.color.copy(WATER_FOG).multiplyScalar(light);scene.fog.near=1;scene.fog.far=14}
+  else{scene.fog.color.copy(sky);scene.fog.near=24;scene.fog.far=72}
+  $('underwater').hidden=!eyeWet;
+  matOpaque.color.setScalar(light);matWater.color.setScalar(light);
+  clockEl.textContent=(sun>-.15?'☀ ':'☾ ')+'Día '+dayCount;
+  if(ready&&!menuOpen){target=raycast();if(target){hl.position.set(target.x+.5,target.y+.5,target.z+.5);hl.visible=true}else hl.visible=false}
+  renderer.render(scene,camera);
+  requestAnimationFrame(frame);
+}
+const clockEl=$('clock');
+
+/* ---------- Boot ---------- */
+function finishBoot(label){
+  ready=true;const pb=$('playBtn');pb.disabled=false;pb.textContent=label;
+}
+function startSolo(){
+  if(net.mode==='solo')return;
+  net.mode='solo';
+  const s=loadSolo();
+  if(s){seed=s.seed;edits=new Map(s.edits)}else{seed=Math.floor(Math.random()*1e9);edits=new Map()}
+  generate(seed);buildAll();
+  if(s&&s.p){[P.x,P.y,P.z,P.yaw,P.pitch]=s.p;if(typeof s.sel==='number')selectSlot(s.sel);if(typeof s.dayTime==='number')dayTime=s.dayTime}
+  else spawn();
+  prevDayTime=dayTime;
+  $('newBtn').hidden=false;
+  $('status').textContent=location.protocol==='file:'?'':'No encontré el servidor: jugás solo.';
+  renderPlayerList();
+  finishBoot(s?'Seguir jugando':'Jugar solo');
+}
+selectSlot(0);setMode('break');renderPlayerList();
+requestAnimationFrame(frame);
+setTimeout(connect,30);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: cubolandia
+    runtime: node
+    rootDir: cubolandia
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
