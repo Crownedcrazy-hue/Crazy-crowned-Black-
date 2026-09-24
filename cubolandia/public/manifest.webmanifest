@@ -1,0 +1,10 @@
+{
+  "name": "Cubolandia",
+  "short_name": "Cubolandia",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#1a1d17",
+  "theme_color": "#1a1d17",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}
