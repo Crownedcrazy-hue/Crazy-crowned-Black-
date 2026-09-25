@@ -42,6 +42,43 @@ const INITIAL_MESSAGES = {
   3:[{id:1,from:'them',text:'Hola, ¿ya salió mi pedido?',time:'16:10'}],
 };
 
+/* ── CARGAS (datos ficticios, relativos a hoy) ───── */
+const GRUPOS=[
+  {id:'vip',nombre:'Grupo VIP',color:'#7c3aed'},
+  {id:'norte',nombre:'Grupo Norte',color:'#0891b2'},
+  {id:'sur',nombre:'Grupo Sur',color:'#d97706'},
+];
+const CARGAS_DEMO=[
+  ['Lucas M.','vip',15000,'09:12',0],['Lucas M.','vip',20000,'13:40',0],['Lucas M.','vip',10000,'18:05',0],
+  ['Valeria T.','vip',30000,'11:20',0],['Valeria T.','vip',5000,'16:55',0],
+  ['Diego F.','vip',8000,'10:02',0],['Diego F.','vip',50000,'21:30',1],
+  ['Carla B.','norte',12000,'08:45',0],['Carla B.','norte',12000,'12:10',0],['Carla B.','norte',6000,'19:25',0],
+  ['Nico S.','norte',25000,'15:00',0],['Nico S.','norte',40000,'22:40',1],
+  ['Pablo G.','norte',3000,'09:58',0],['Pablo G.','norte',4000,'17:14',0],
+  ['Romina L.','sur',18000,'10:30',0],['Romina L.','sur',7000,'14:22',0],
+  ['Tomás V.','sur',9000,'11:47',0],['Tomás V.','sur',9000,'13:03',0],['Tomás V.','sur',2000,'20:18',0],
+  ['Agus P.','sur',1500,'16:36',0],['Agus P.','sur',60000,'23:10',2],
+];
+function generarCargas(base=new Date()){
+  return CARGAS_DEMO.map(([usuario,grupoId,monto,hora,diasAtras],i)=>{
+    const [hh,mm]=hora.split(':').map(Number);
+    return {id:i+1,usuario,grupoId,monto,fecha:new Date(base.getFullYear(),base.getMonth(),base.getDate()-diasAtras,hh,mm)};
+  });
+}
+const mismoDia=(a,b)=>a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();
+function topCargasDelDia(cargas,{grupoId='todos',fecha=new Date()}={}){
+  const m=new Map();
+  for(const c of cargas){
+    if(!mismoDia(c.fecha,fecha))continue;
+    if(grupoId!=='todos'&&c.grupoId!==grupoId)continue;
+    const k=`${c.grupoId}:${c.usuario}`;
+    const f=m.get(k)||{usuario:c.usuario,grupoId:c.grupoId,total:0,cantidad:0};
+    f.total+=c.monto;f.cantidad+=1;m.set(k,f);
+  }
+  return [...m.values()].sort((a,b)=>b.total-a.total||b.cantidad-a.cantidad);
+}
+const formatoPesos=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(n);
+
 /* ── ICONS ────────────────────────────────────────── */
 const WA = () => h('svg',{width:12,height:12,viewBox:'0 0 12 12',fill:'none'},
   h('circle',{cx:6,cy:6,r:6,fill:'#25d366'}),
@@ -99,10 +136,10 @@ function BrowserBar(){
 
 /* ── FILTER TABS ──────────────────────────────────── */
 function FilterTabs({active,onChange}){
-  const tabs=[{id:'hacer',label:'Hacer'},{id:'whatsapp',label:'WhatsApp'},{id:'instagram',label:'Instagram'}];
-  return h('div',{style:{display:'flex',gap:8,padding:'4px 16px 12px',background:'#f2f2f7'}},
+  const tabs=[{id:'hacer',label:'Hacer'},{id:'whatsapp',label:'WhatsApp'},{id:'instagram',label:'Instagram'},{id:'top',label:'🏆 Top hoy'}];
+  return h('div',{style:{display:'flex',gap:8,overflowX:'auto',padding:'4px 16px 12px',background:'#f2f2f7'}},
     tabs.map(t=>h('button',{key:t.id,
-      style:{display:'flex',alignItems:'center',gap:5,padding:'6px 14px',borderRadius:20,fontSize:14,fontWeight:500,
+      style:{display:'flex',alignItems:'center',gap:5,padding:'6px 14px',borderRadius:20,whiteSpace:'nowrap',flexShrink:0,fontSize:14,fontWeight:500,
         background:active===t.id?'#1c1c1e':'#fff',color:active===t.id?'#fff':'#3c3c43',
         boxShadow:active===t.id?'none':'0 1px 3px rgba(0,0,0,0.08)',transition:'all .15s'},
       onClick:()=>onChange(t.id)},
@@ -198,6 +235,47 @@ function ChatView({c,onBack}){
             h('path',{d:'M2 9h14M10 3l6 6-6 6',stroke:'#fff',strokeWidth:2,strokeLinecap:'round',strokeLinejoin:'round'}))))));
 }
 
+/* ── TOP CARGAS ───────────────────────────────────── */
+function TopCargas({search}){
+  const [grupoId,setGrupoId]=useState('todos');
+  const [cargas]=useState(()=>generarCargas());
+  const hoy=new Date();
+  const ranking=topCargasDelDia(cargas,{grupoId,fecha:hoy});
+  const q=search.toLowerCase();
+  const filas=q?ranking.filter(f=>f.usuario.toLowerCase().includes(q)):ranking;
+  const total=ranking.reduce((s,f)=>s+f.total,0);
+  const cantidad=ranking.reduce((s,f)=>s+f.cantidad,0);
+  const gp=Object.fromEntries(GRUPOS.map(g=>[g.id,g]));
+  const fecha=hoy.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'}),fechaTxt=fecha.charAt(0).toUpperCase()+fecha.slice(1);
+  const medallas=['🥇','🥈','🥉'];
+  const row={display:'flex',alignItems:'center',gap:8,padding:'10px 14px',borderBottom:'1px solid #f2f2f7',fontSize:13,color:'#3c3c43'};
+  const cPos={width:28,textAlign:'center',flexShrink:0},cUsr={flex:1,minWidth:0},cCant={width:50,textAlign:'center',flexShrink:0},cTot={width:90,textAlign:'right',flexShrink:0};
+  return h('div',{style:{padding:'0 12px'}},
+    h('div',{style:{background:'#1c1c1e',color:'#fff',borderRadius:16,padding:'14px 16px',marginBottom:10}},
+      h('div',{style:{fontSize:13,color:'rgba(255,255,255,0.6)'}},`🏆 Top cargas · ${fechaTxt}`),
+      h('div',{style:{fontSize:26,fontWeight:700,marginTop:4}},formatoPesos(total)),
+      h('div',{style:{fontSize:12,color:'rgba(255,255,255,0.6)',marginTop:2}},`${cantidad} cargas · ${ranking.length} usuarios`)),
+    h('div',{style:{display:'flex',gap:6,overflowX:'auto',paddingBottom:10}},
+      [{id:'todos',nombre:'Todos'},...GRUPOS].map(g=>h('button',{key:g.id,onClick:()=>setGrupoId(g.id),
+        style:{display:'flex',alignItems:'center',gap:5,padding:'5px 12px',borderRadius:16,fontSize:13,fontWeight:500,whiteSpace:'nowrap',
+          background:grupoId===g.id?'#1c1c1e':'#fff',color:grupoId===g.id?'#fff':'#3c3c43',boxShadow:grupoId===g.id?'none':'0 1px 3px rgba(0,0,0,0.08)'}},
+        g.color&&h('span',{style:{width:8,height:8,borderRadius:'50%',background:g.color,flexShrink:0}}),g.nombre))),
+    h('div',{style:{background:'#fff',borderRadius:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)',overflow:'hidden'}},
+      h('div',{style:{...row,fontSize:11,fontWeight:600,color:'#8e8e93',textTransform:'uppercase',letterSpacing:0.4,padding:'8px 14px'}},
+        h('span',{style:cPos},'#'),h('span',{style:cUsr},'Usuario'),h('span',{style:cCant},'Cargas'),h('span',{style:cTot},'Total')),
+      filas.length===0&&h('div',{style:{padding:'28px 0',textAlign:'center',color:'#8e8e93',fontSize:14}},'Sin cargas hoy'),
+      filas.map(f=>{
+        const pos=ranking.indexOf(f),g=gp[f.grupoId];
+        return h('div',{key:`${f.grupoId}:${f.usuario}`,style:row},
+          h('span',{style:{...cPos,fontSize:pos<3?18:13}},medallas[pos]||pos+1),
+          h('span',{style:cUsr},
+            h('span',{style:{display:'block',fontSize:14,fontWeight:600,color:'#1c1c1e'}},f.usuario),
+            grupoId==='todos'&&h('span',{style:{fontSize:11,color:g.color,fontWeight:500}},g.nombre)),
+          h('span',{style:cCant},f.cantidad),
+          h('span',{style:{...cTot,fontWeight:700,color:'#1c1c1e'}},formatoPesos(f.total)));
+      })));
+}
+
 /* ── BOTTOM NAV ───────────────────────────────────── */
 function BottomNav({active,onChange}){
   const items=[
@@ -241,7 +319,9 @@ function App(){
       h('h1',{style:{textAlign:'center',fontSize:17,fontWeight:600,color:'#1c1c1e',padding:'14px 0 10px',background:'#f2f2f7'}},'Mensaje'),
       h(FilterTabs,{active:activeTab,onChange:setActiveTab}),
       h(SearchBar,{value:search,onChange:setSearch}),
-      filtered.length===0
+      activeTab==='top'
+        ? h(TopCargas,{search})
+        : filtered.length===0
         ? h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'60px 0'}},
             h('span',{style:{fontSize:32}},'💬'),
             h('p',{style:{marginTop:8,color:'#8e8e93',fontSize:14}},'Sin conversaciones'))

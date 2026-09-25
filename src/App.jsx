@@ -6,6 +6,7 @@ import SearchBar from './components/SearchBar'
 import ConversationList from './components/ConversationList'
 import BottomNav from './components/BottomNav'
 import ChatView from './components/ChatView'
+import TopCargas from './components/TopCargas'
 import { conversations } from './data/conversations'
 
 export default function App() {
@@ -46,10 +47,14 @@ export default function App() {
         <h1 style={headingStyle}>Mensaje</h1>
         <FilterTabs active={activeTab} onChange={setActiveTab} />
         <SearchBar value={searchQuery} onChange={setSearchQuery} />
-        <ConversationList
-          conversations={filtered}
-          onSelect={setActiveChat}
-        />
+        {activeTab === 'top' ? (
+          <TopCargas searchQuery={searchQuery} />
+        ) : (
+          <ConversationList
+            conversations={filtered}
+            onSelect={setActiveChat}
+          />
+        )}
       </div>
       <BottomNav active={activeNav} onChange={setActiveNav} />
     </div>

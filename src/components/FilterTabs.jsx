@@ -2,6 +2,7 @@ const TABS = [
   { id: 'hacer', label: 'Hacer' },
   { id: 'whatsapp', label: 'WhatsApp' },
   { id: 'instagram', label: 'Instagram' },
+  { id: 'top', label: '🏆 Top hoy' },
 ]
 
 export default function FilterTabs({ active, onChange }) {
@@ -46,6 +47,7 @@ function InstagramDot() {
 const wrapper = {
   display: 'flex',
   gap: 8,
+  overflowX: 'auto',
   padding: '4px 16px 12px',
   background: '#f2f2f7',
 }
@@ -60,6 +62,8 @@ const baseTab = {
   fontWeight: 500,
   cursor: 'pointer',
   border: 'none',
+  whiteSpace: 'nowrap',
+  flexShrink: 0,
   transition: 'all 0.15s',
 }
 
