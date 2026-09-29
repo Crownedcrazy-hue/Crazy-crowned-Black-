@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mi Lugar 3D</title>
+<meta name="description" content="Página de presentación de un lugar con efectos 3D">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=Sora:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Concepto: escena WebGL a pantalla completa detrás de una tarjeta de identidad; el contenido flota sobre la escena en capas con parallax. Diseño oscuro único, elegido para que brillen las luces 3D. */
+:root {
+  --bg: #07080f;
+  --bg-2: #0f1220;
+  --fg: #eef0ff;
+  --fg-dim: #9aa0c7;
+  --accent: #ffb547;
+  --accent-2: #4dd6ff;
+  --line: rgba(238,240,255,.14);
+  --glass: rgba(15,18,32,.55);
+  --font-display: 'Unbounded', 'Arial Black', Impact, sans-serif;
+  --font-body: 'Sora', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+  overflow-x: hidden;
+  padding-inline: 0;
+}
+#escena {
+  position: fixed; inset: 0; width: 100%; height: 100%;
+  z-index: 0; display: block;
+}
+.velo {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 120%, rgba(7,8,15,.95) 0%, rgba(7,8,15,.35) 45%, transparent 70%),
+    linear-gradient(180deg, transparent 0%, rgba(7,8,15,.55) 100%);
+}
+.contenido { position: relative; z-index: 2; }
+.wrap { max-width: 1120px; margin-inline: auto; padding-inline: 20px; }
+
+/* Barra superior */
+.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 14px 20px;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  background: linear-gradient(180deg, rgba(7,8,15,.7), rgba(7,8,15,.25));
+  border-bottom: 1px solid var(--line);
+}
+.marca { font-family: var(--font-display); font-weight: 700; font-size: .95rem; letter-spacing: .04em; text-transform: uppercase; }
+.marca span { color: var(--accent); }
+.top nav { display: flex; gap: 18px; font-size: .85rem; color: var(--fg-dim); }
+.top nav a { color: inherit; text-decoration: none; }
+.top nav a:hover, .top nav a:focus-visible { color: var(--fg); }
+@media (max-width: 560px) { .top nav { display: none; } }
+
+/* Héroe */
+.hero {
+  min-height: 78vh; display: grid; place-items: center; text-align: center;
+  padding-block: 72px 48px; perspective: 1200px;
+}
+.hero-inner { transform-style: preserve-3d; will-change: transform; }
+.eyebrow {
+  font-family: var(--font-mono); font-size: .78rem; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--accent-2); margin: 0 0 18px;
+}
+.hero h1 {
+  font-family: var(--font-display); font-weight: 900;
+  font-size: clamp(2.4rem, 8vw, 6.2rem); line-height: .98; margin: 0;
+  letter-spacing: -.01em; text-wrap: balance;
+  background: linear-gradient(120deg, #fff 0%, var(--accent) 55%, var(--accent-2) 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 18px 40px rgba(255,181,71,.25));
+  transform: translateZ(60px);
+}
+.hero p.lema { color: var(--fg-dim); font-size: clamp(1rem, 2.2vw, 1.25rem); max-width: 40ch; margin: 22px auto 0; transform: translateZ(30px); }
+.cta {
+  display: inline-flex; align-items: center; gap: 10px;
+  margin-top: 34px; padding: 14px 24px; border-radius: 999px;
+  font-weight: 600; text-decoration: none; color: #0b0c14;
+  background: linear-gradient(120deg, var(--accent), #ffd27a);
+  box-shadow: 0 10px 30px rgba(255,181,71,.35), inset 0 1px 0 rgba(255,255,255,.5);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.cta:hover, .cta:focus-visible { transform: translateY(-3px) scale(1.02); box-shadow: 0 18px 44px rgba(255,181,71,.45); }
+.cta.sec { background: transparent; color: var(--fg); border: 1px solid var(--line); box-shadow: none; margin-left: 10px; }
+.cta.sec:hover { border-color: var(--accent-2); color: var(--accent-2); }
+.ctas { transform: translateZ(40px); }
+
+/* Estadísticas rápidas */
+.stats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px;
+  margin-top: 56px; perspective: 900px;
+}
+.stat {
+  padding: 18px 16px; border: 1px solid var(--line); border-radius: 16px;
+  background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  transform-style: preserve-3d; transition: transform .35s ease, border-color .35s;
+}
+.stat:hover { transform: rotateX(8deg) rotateY(-8deg) translateZ(14px); border-color: var(--accent-2); }
+.stat b { display: block; font-family: var(--font-display); font-size: 1.6rem; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+.stat small { color: var(--fg-dim); font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; }
+
+/* Secciones */
+section.bloque { padding-block: 84px; }
+.titulo {
+  font-family: var(--font-display); font-weight: 700; font-size: clamp(1.6rem, 4vw, 2.6rem);
+  margin: 0 0 8px; text-wrap: balance;
+}
+.sub { color: var(--fg-dim); margin: 0 0 36px; max-width: 60ch; }
+
+/* Tarjeta 3D con tilt */
+.tarjetas { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 22px; perspective: 1400px; }
+.tarjeta {
+  position: relative; padding: 26px; border-radius: 22px; min-width: 0;
+  background: linear-gradient(160deg, rgba(255,255,255,.07), rgba(255,255,255,.02));
+  border: 1px solid var(--line);
+  transform-style: preserve-3d; transition: transform .12s ease-out, box-shadow .3s;
+  box-shadow: 0 30px 60px rgba(0,0,0,.45);
+}
+.tarjeta::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(600px circle at var(--mx, 50%) var(--my, 50%), rgba(77,214,255,.18), transparent 45%);
+  opacity: 0; transition: opacity .3s;
+}
+.tarjeta:hover::after { opacity: 1; }
+.tarjeta .icono {
+  width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center;
+  background: linear-gradient(140deg, var(--accent), var(--accent-2)); color: #0b0c14;
+  font-weight: 700; transform: translateZ(40px); margin-bottom: 16px;
+  box-shadow: 0 10px 24px rgba(77,214,255,.3);
+}
+.tarjeta h3 { margin: 0 0 6px; font-size: 1.05rem; transform: translateZ(30px); }
+.tarjeta p { margin: 0; color: var(--fg-dim); font-size: .95rem; transform: translateZ(20px); overflow-wrap: anywhere; }
+.tarjeta a { color: var(--accent-2); text-decoration: none; }
+.tarjeta a:hover { text-decoration: underline; }
+.copiar {
+  margin-top: 12px; font: 500 .75rem var(--font-mono); letter-spacing: .08em; text-transform: uppercase;
+  background: transparent; color: var(--accent); border: 1px solid rgba(255,181,71,.4);
+  border-radius: 999px; padding: 6px 12px; cursor: pointer; transform: translateZ(25px);
+}
+.copiar:hover, .copiar:focus-visible { background: rgba(255,181,71,.12); }
+
+/* Horarios */
+.horario { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; max-width: 520px; }
+.horario li {
+  display: flex; justify-content: space-between; gap: 12px; padding: 12px 16px;
+  border-radius: 12px; border: 1px solid var(--line); background: var(--glass);
+  font-variant-numeric: tabular-nums;
+}
+.horario li.hoy { border-color: var(--accent); box-shadow: 0 0 0 1px rgba(255,181,71,.35), 0 12px 30px rgba(255,181,71,.15); }
+.horario li span:last-child { color: var(--fg-dim); }
+.horario li.hoy span:last-child { color: var(--accent); font-weight: 600; }
+
+/* Carrusel 3D */
+.carrusel-wrap { perspective: 1400px; height: 320px; display: grid; place-items: center; margin-top: 10px; overflow: visible; }
+.carrusel { position: relative; width: 240px; height: 240px; transform-style: preserve-3d; animation: girar 28s linear infinite; }
+.carrusel:hover { animation-play-state: paused; }
+.cara {
+  position: absolute; inset: 0; border-radius: 18px; display: grid; place-items: center; text-align: center; padding: 18px;
+  border: 1px solid var(--line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  font-family: var(--font-display); font-weight: 500; font-size: .95rem;
+  background: linear-gradient(160deg, rgba(77,214,255,.22), rgba(255,181,71,.16));
+  box-shadow: 0 20px 50px rgba(0,0,0,.5);
+  backface-visibility: hidden;
+}
+@keyframes girar { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
+
+/* Reseñas */
+.resenas { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+.resena { padding: 22px; border-radius: 18px; border: 1px solid var(--line); background: var(--glass); min-width: 0; }
+.resena .estrellas { color: var(--accent); letter-spacing: 2px; font-size: .9rem; }
+.resena p { margin: 10px 0 12px; color: var(--fg); }
+.resena small { color: var(--fg-dim); }
+
+/* Mapa / ubicación */
+.ubicacion {
+  display: grid; grid-template-columns: 1.1fr .9fr; gap: 28px; align-items: center;
+}
+@media (max-width: 760px) { .ubicacion { grid-template-columns: 1fr; } }
+.pin-escena { perspective: 900px; height: 260px; display: grid; place-items: center; }
+.pin {
+  width: 200px; height: 200px; position: relative; transform-style: preserve-3d;
+  animation: flotar 5s ease-in-out infinite;
+}
+.pin .anillo {
+  position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--accent-2);
+  transform: rotateX(72deg); opacity: .7; animation: pulso 3s ease-out infinite;
+}
+.pin .anillo:nth-child(2) { animation-delay: 1s; }
+.pin .anillo:nth-child(3) { animation-delay: 2s; }
+.pin .marcador {
+  position: absolute; left: 50%; top: 50%; width: 54px; height: 54px; margin: -70px 0 0 -27px;
+  background: linear-gradient(140deg, var(--accent), #ff7a3d); border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg) translateZ(60px); box-shadow: 0 20px 40px rgba(255,122,61,.45);
+}
+.pin .marcador::after { content: ""; position: absolute; inset: 15px; background: var(--bg); border-radius: 50%; }
+@keyframes flotar { 0%,100% { transform: translateY(0) rotateY(-10deg); } 50% { transform: translateY(-14px) rotateY(10deg); } }
+@keyframes pulso { 0% { transform: rotateX(72deg) scale(.4); opacity: .9; } 100% { transform: rotateX(72deg) scale(1.15); opacity: 0; } }
+.direccion-grande { font-family: var(--font-display); font-weight: 500; font-size: 1.2rem; margin: 0 0 10px; overflow-wrap: anywhere; }
+.coords { font-family: var(--font-mono); color: var(--fg-dim); font-size: .85rem; }
+
+/* Aviso de datos pendientes */
+.aviso {
+  margin: 20px auto 0; max-width: 720px; padding: 14px 18px; border-radius: 14px; font-size: .9rem;
+  border: 1px dashed rgba(255,181,71,.55); background: rgba(255,181,71,.08); color: var(--fg);
+}
+.aviso code { font-family: var(--font-mono); color: var(--accent); }
+
+footer { padding-block: 40px 60px; text-align: center; color: var(--fg-dim); font-size: .85rem; border-top: 1px solid var(--line); }
+
+/* Aparición al hacer scroll (visible en reposo, solo se desplaza) */
+.reveal { transition: transform .8s cubic-bezier(.2,.7,.2,1), opacity .8s; }
+.reveal.pre { transform: translateY(28px); opacity: .001; }
+@media (prefers-reduced-motion: reduce) {
+  .carrusel, .pin, .pin .anillo { animation: none; }
+  .reveal, .reveal.pre { transform: none; opacity: 1; transition: none; }
+  .hero-inner, .tarjeta { transform: none !important; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="escena" aria-hidden="true"></canvas>
+<div class="velo"></div>
+
+<div class="contenido">
+  <header class="top">
+    <div class="marca" id="marca">Mi <span>Lugar</span></div>
+    <nav>
+      <a href="#info">Información</a>
+      <a href="#horarios">Horarios</a>
+      <a href="#galeria">Galería</a>
+      <a href="#ubicacion">Ubicación</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero wrap">
+      <div class="hero-inner" id="heroInner">
+        <p class="eyebrow" id="categoria">Categoría del lugar</p>
+        <h1 id="nombre">Nombre del lugar</h1>
+        <p class="lema" id="lema">Descripción breve del lugar.</p>
+        <div class="ctas">
+          <a class="cta" id="btnMaps" href="#" target="_blank" rel="noopener">Cómo llegar</a>
+          <a class="cta sec" href="#info">Ver información</a>
+        </div>
+        <div class="stats" id="stats"></div>
+      </div>
+    </section>
+
+    <section class="bloque wrap reveal" id="info">
+      <h2 class="titulo">Información</h2>
+      <p class="sub">Todo lo que necesitás para visitarnos o contactarnos.</p>
+      <div class="tarjetas" id="tarjetas"></div>
+    </section>
+
+    <section class="bloque wrap reveal" id="horarios">
+      <h2 class="titulo">Horarios</h2>
+      <p class="sub">El día de hoy aparece resaltado.</p>
+      <ul class="horario" id="listaHorarios"></ul>
+    </section>
+
+    <section class="bloque wrap reveal" id="galeria">
+      <h2 class="titulo">Galería</h2>
+      <p class="sub">Un recorrido en 3D por lo que vas a encontrar. Pasá el cursor para detenerlo.</p>
+      <div class="carrusel-wrap"><div class="carrusel" id="carrusel"></div></div>
+    </section>
+
+    <section class="bloque wrap reveal" id="opiniones">
+      <h2 class="titulo">Opiniones</h2>
+      <p class="sub">Lo que dicen quienes ya nos visitaron.</p>
+      <div class="resenas" id="resenas"></div>
+    </section>
+
+    <section class="bloque wrap reveal" id="ubicacion">
+      <h2 class="titulo">Ubicación</h2>
+      <div class="ubicacion">
+        <div>
+          <p class="direccion-grande" id="direccion">Dirección del lugar</p>
+          <p class="coords" id="coords"></p>
+          <a class="cta" id="btnMaps2" href="#" target="_blank" rel="noopener">Abrir en Google Maps</a>
+        </div>
+        <div class="pin-escena">
+          <div class="pin">
+            <div class="anillo"></div><div class="anillo"></div><div class="anillo"></div>
+            <div class="marcador"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="aviso" id="aviso" hidden>
+      Datos de ejemplo. Editá el objeto <code>LUGAR</code> al inicio del script en este archivo con la información real del lugar.
+    </div>
+  </main>
+
+  <footer>
+    <span id="pie"></span>
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+<script>
+/* =========================================================
+   DATOS DEL LUGAR
+   Editá este objeto con la información real. Todo lo que
+   se muestra en la página sale de acá.
+   ========================================================= */
+const LUGAR = {
+  esEjemplo: true, // cambiá a false cuando cargues los datos reales
+  nombre: "Nombre del lugar",
+  categoria: "Categoría (ej. Restaurante, Bar, Tienda)",
+  lema: "Una frase corta que describa el lugar y por qué vale la pena visitarlo.",
+  direccion: "Calle 123, Ciudad, Provincia",
+  coordenadas: { lat: null, lng: null }, // ej. { lat: -34.6037, lng: -58.3816 }
+  telefono: "+54 11 0000-0000",
+  web: "",
+  instagram: "",
+  email: "",
+  mapsUrl: "https://maps.app.goo.gl/9xdDR4QWyDxydd6g9?g_st=ic",
+  puntuacion: 4.8,
+  cantidadResenas: 120,
+  precio: "$$",
+  horarios: {
+    lunes: "09:00 – 20:00",
+    martes: "09:00 – 20:00",
+    miercoles: "09:00 – 20:00",
+    jueves: "09:00 – 20:00",
+    viernes: "09:00 – 22:00",
+    sabado: "10:00 – 22:00",
+    domingo: "Cerrado"
+  },
+  galeria: ["Fachada", "Interior", "Especialidad de la casa", "Terraza", "Equipo", "Detalle"],
+  resenas: [
+    { autor: "Cliente 1", estrellas: 5, texto: "Excelente atención y ambiente." },
+    { autor: "Cliente 2", estrellas: 5, texto: "Volvería sin dudarlo." },
+    { autor: "Cliente 3", estrellas: 4, texto: "Muy buena relación precio y calidad." }
+  ]
+};
+
+/* ---------- Relleno del contenido ---------- */
+const $ = (id) => document.getElementById(id);
+const dias = ["domingo","lunes","martes","miercoles","jueves","viernes","sabado"];
+const nombresDias = { lunes:"Lunes", martes:"Martes", miercoles:"Miércoles", jueves:"Jueves", viernes:"Viernes", sabado:"Sábado", domingo:"Domingo" };
+
+document.title = LUGAR.nombre + " · 3D";
+$("marca").innerHTML = LUGAR.nombre.split(" ").map((w,i)=> i===0 ? w : `<span>${w}</span>`).join(" ");
+$("categoria").textContent = LUGAR.categoria;
+$("nombre").textContent = LUGAR.nombre;
+$("lema").textContent = LUGAR.lema;
+$("btnMaps").href = LUGAR.mapsUrl;
+$("btnMaps2").href = LUGAR.mapsUrl;
+$("direccion").textContent = LUGAR.direccion;
+$("pie").textContent = `© ${new Date().getFullYear()} ${LUGAR.nombre}`;
+$("aviso").hidden = !LUGAR.esEjemplo;
+if (LUGAR.coordenadas.lat != null && LUGAR.coordenadas.lng != null) {
+  $("coords").textContent = `${LUGAR.coordenadas.lat.toFixed(5)}, ${LUGAR.coordenadas.lng.toFixed(5)}`;
+}
+
+$("stats").innerHTML = [
+  { v: LUGAR.puntuacion.toFixed(1) + " ★", l: "Puntuación" },
+  { v: LUGAR.cantidadResenas, l: "Reseñas" },
+  { v: LUGAR.precio, l: "Precio" },
+  { v: (LUGAR.horarios[dias[new Date().getDay()]] || "—").split("–")[0].trim() === "Cerrado" ? "Cerrado" : "Abierto", l: "Hoy" }
+].map(s => `<div class="stat"><b>${s.v}</b><small>${s.l}</small></div>`).join("");
+
+const tarjetas = [
+  { ic: "📍", t: "Dirección", c: LUGAR.direccion, copiar: LUGAR.direccion },
+  { ic: "☎", t: "Teléfono", c: LUGAR.telefono, copiar: LUGAR.telefono },
+  LUGAR.web ? { ic: "🌐", t: "Sitio web", c: `<a href="${LUGAR.web}" target="_blank" rel="noopener">${LUGAR.web.replace(/^https?:\/\//,"")}</a>` } : null,
+  LUGAR.instagram ? { ic: "◎", t: "Instagram", c: `<a href="https://instagram.com/${LUGAR.instagram.replace("@","")}" target="_blank" rel="noopener">@${LUGAR.instagram.replace("@","")}</a>` } : null,
+  LUGAR.email ? { ic: "✉", t: "Email", c: LUGAR.email, copiar: LUGAR.email } : null,
+  { ic: "★", t: "Puntuación", c: `${LUGAR.puntuacion.toFixed(1)} de 5 según ${LUGAR.cantidadResenas} reseñas en Google Maps` }
+].filter(Boolean);
+$("tarjetas").innerHTML = tarjetas.map((t,i) => `
+  <article class="tarjeta" data-tilt>
+    <div class="icono">${t.ic}</div>
+    <h3>${t.t}</h3>
+    <p>${t.c}</p>
+    ${t.copiar ? `<button class="copiar" data-copiar="${t.copiar.replace(/"/g,"&quot;")}">Copiar</button>` : ""}
+  </article>`).join("");
+
+const hoy = dias[new Date().getDay()];
+$("listaHorarios").innerHTML = ["lunes","martes","miercoles","jueves","viernes","sabado","domingo"]
+  .map(d => `<li class="${d===hoy?"hoy":""}"><span>${nombresDias[d]}</span><span>${LUGAR.horarios[d] || "—"}</span></li>`).join("");
+
+const n = LUGAR.galeria.length, radio = Math.round(120 / Math.tan(Math.PI / n)) + 40;
+$("carrusel").innerHTML = LUGAR.galeria.map((g,i) =>
+  `<div class="cara" style="transform: rotateY(${(360/n)*i}deg) translateZ(${radio}px)">${g}</div>`).join("");
+
+$("resenas").innerHTML = LUGAR.resenas.map(r => `
+  <article class="resena">
+    <div class="estrellas">${"★".repeat(r.estrellas)}${"☆".repeat(5-r.estrellas)}</div>
+    <p>“${r.texto}”</p>
+    <small>${r.autor}</small>
+  </article>`).join("");
+
+/* ---------- Botones copiar ---------- */
+document.querySelectorAll("[data-copiar]").forEach(b => {
+  b.addEventListener("click", async () => {
+    const txt = b.dataset.copiar, orig = b.textContent;
+    try { await navigator.clipboard.writeText(txt); b.textContent = "Copiado"; }
+    catch { b.textContent = "Seleccioná y copiá"; }
+    setTimeout(() => b.textContent = orig, 1600);
+  });
+});
+
+/* ---------- Tilt 3D en tarjetas ---------- */
+const reducir = matchMedia("(prefers-reduced-motion: reduce)").matches;
+if (!reducir) {
+  document.querySelectorAll("[data-tilt]").forEach(el => {
+    el.addEventListener("pointermove", e => {
+      const r = el.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+      el.style.setProperty("--mx", (x*100)+"%"); el.style.setProperty("--my", (y*100)+"%");
+      el.style.transform = `rotateY(${(x-.5)*18}deg) rotateX(${(.5-y)*18}deg) translateZ(10px)`;
+    });
+    el.addEventListener("pointerleave", () => { el.style.transform = ""; });
+  });
+  // Parallax del héroe con el mouse
+  const hero = $("heroInner");
+  addEventListener("pointermove", e => {
+    const x = e.clientX / innerWidth - .5, y = e.clientY / innerHeight - .5;
+    hero.style.transform = `rotateY(${x*6}deg) rotateX(${-y*6}deg)`;
+  });
+}
+
+/* ---------- Revelado al hacer scroll ---------- */
+if ("IntersectionObserver" in window && !reducir) {
+  const io = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.remove("pre"); io.unobserve(en.target); } }), { threshold: .12 });
+  document.querySelectorAll(".reveal").forEach(el => {
+    const r = el.getBoundingClientRect();
+    if (r.top > innerHeight) { el.classList.add("pre"); io.observe(el); }
+  });
+}
+
+/* ---------- Escena WebGL (Three.js) ---------- */
+(function escena3D() {
+  if (typeof THREE === "undefined") return;
+  const canvas = $("escena");
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x07080f, 0.035);
+  const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100);
+  camera.position.set(0, 0, 14);
+
+  // Luces
+  scene.add(new THREE.AmbientLight(0x6070ff, 0.5));
+  const l1 = new THREE.PointLight(0xffb547, 60, 60); l1.position.set(6, 5, 6); scene.add(l1);
+  const l2 = new THREE.PointLight(0x4dd6ff, 60, 60); l2.position.set(-7, -4, 5); scene.add(l2);
+
+  // Partículas
+  const N = 900, pos = new Float32Array(N*3);
+  for (let i = 0; i < N*3; i++) pos[i] = (Math.random() - .5) * 60;
+  const pg = new THREE.BufferGeometry(); pg.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  const puntos = new THREE.Points(pg, new THREE.PointsMaterial({ color: 0xaab4ff, size: 0.08, transparent: true, opacity: .75 }));
+  scene.add(puntos);
+
+  // Sólidos flotantes
+  const geos = [
+    new THREE.IcosahedronGeometry(1.6, 0),
+    new THREE.TorusKnotGeometry(1, 0.32, 140, 16),
+    new THREE.OctahedronGeometry(1.3, 0),
+    new THREE.TorusGeometry(1.2, 0.35, 24, 80),
+    new THREE.DodecahedronGeometry(1.1, 0)
+  ];
+  const cuerpos = [];
+  for (let i = 0; i < 12; i++) {
+    const g = geos[i % geos.length];
+    const wire = i % 3 === 0;
+    const mat = wire
+      ? new THREE.MeshBasicMaterial({ color: i % 2 ? 0x4dd6ff : 0xffb547, wireframe: true, transparent: true, opacity: .55 })
+      : new THREE.MeshStandardMaterial({ color: 0x1a1f3a, metalness: .85, roughness: .25, emissive: i % 2 ? 0x0a2a3a : 0x3a2408, emissiveIntensity: .6 });
+    const m = new THREE.Mesh(g, mat);
+    const a = (i / 12) * Math.PI * 2, r = 5 + Math.random() * 6;
+    m.position.set(Math.cos(a) * r, (Math.random() - .5) * 8, Math.sin(a) * r - 4);
+    m.scale.setScalar(.5 + Math.random() * .9);
+    m.userData = { a, r, y: m.position.y, v: .1 + Math.random() * .25, rot: (Math.random() - .5) * .01 };
+    scene.add(m); cuerpos.push(m);
+  }
+
+  // Aro central detrás del título
+  const aro = new THREE.Mesh(new THREE.TorusGeometry(4.2, 0.05, 16, 160), new THREE.MeshBasicMaterial({ color: 0xffb547, transparent: true, opacity: .5 }));
+  aro.rotation.x = Math.PI / 2.4; scene.add(aro);
+  const aro2 = aro.clone(); aro2.material = new THREE.MeshBasicMaterial({ color: 0x4dd6ff, transparent: true, opacity: .35 }); aro2.scale.setScalar(1.35); aro2.rotation.z = .6; scene.add(aro2);
+
+  function ajustar() {
+    const w = innerWidth, h = innerHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  ajustar(); addEventListener("resize", ajustar);
+
+  let mx = 0, my = 0, scrollY = 0;
+  addEventListener("pointermove", e => { mx = e.clientX / innerWidth - .5; my = e.clientY / innerHeight - .5; });
+  addEventListener("scroll", () => { scrollY = window.scrollY; }, { passive: true });
+
+  const reloj = new THREE.Clock();
+  function animar() {
+    const t = reloj.getElapsedTime();
+    cuerpos.forEach((m, i) => {
+      const d = m.userData;
+      const a = d.a + t * d.v * .3;
+      m.position.x = Math.cos(a) * d.r;
+      m.position.z = Math.sin(a) * d.r - 4;
+      m.position.y = d.y + Math.sin(t * d.v * 2 + i) * .8;
+      m.rotation.x += .004 + d.rot; m.rotation.y += .006 - d.rot;
+    });
+    aro.rotation.z = t * .15; aro2.rotation.y = t * .1;
+    puntos.rotation.y = t * .02;
+    l1.position.x = Math.cos(t * .5) * 7; l1.position.z = Math.sin(t * .5) * 7 + 2;
+    camera.position.x += ((reducir ? 0 : mx * 3) - camera.position.x) * .04;
+    camera.position.y += ((reducir ? 0 : -my * 2) - scrollY * .004 - camera.position.y) * .04;
+    camera.lookAt(0, -scrollY * .004, 0);
+    renderer.render(scene, camera);
+    requestAnimationFrame(animar);
+  }
+  animar();
+})();
+</script>
+</body>
+</html>
