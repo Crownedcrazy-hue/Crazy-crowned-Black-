@@ -7,3 +7,9 @@ services:
     buildCommand: npm ci
     startCommand: npm start
     healthCheckPath: /health
+  - type: web
+    name: crazy-crowned-tienda
+    runtime: static
+    rootDir: tienda
+    buildCommand: echo "sitio estatico"
+    staticPublishPath: .
